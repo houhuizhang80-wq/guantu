@@ -1499,6 +1499,39 @@ export const EXTRA_LINKS: { from: string; path: import('../types').NextPath }[] 
     },
   },
   {
+    from: 'fushizhang',
+    path: {
+      to: 'guoqi_zong',
+      label: '交流任省属国企总经理',
+      kind: 'transfer',
+      minZJ: 88,
+      minGX: 74,
+      minNL: 76,
+    },
+  },
+  {
+    from: 'shengting_fu',
+    path: {
+      to: 'guoqi_zong',
+      label: '交流任省属国企总经理',
+      kind: 'transfer',
+      minZJ: 90,
+      minGX: 76,
+      minNL: 78,
+    },
+  },
+  {
+    from: 'shengting_zhang',
+    path: {
+      to: 'guoqi_dong',
+      label: '交流任省属国企董事长',
+      kind: 'transfer',
+      minZJ: 92,
+      minGX: 80,
+      minNL: 80,
+    },
+  },
+  {
     from: 'fushengzhang',
     path: {
       to: 'buwei_fu',
