@@ -18,15 +18,15 @@ const STAGES: PromoTrack['stage'][] = ['minzhu', 'kaocha', 'gongshi', 'piaojue',
  */
 export const TUNE = {
   /** 进入省部级正职（rank 16-17）：基础压制 */
-  buBase: 32,
+  buBase: 26,
   /** 进入省部级正职：五维不达标时的追加压制 */
-  buWeak: 16,
+  buWeak: 14,
   /** 进入省部级副职（rank 15） */
-  fuBase: 24,
-  fuWeak: 15,
+  fuBase: 18,
+  fuWeak: 12,
   /** 进入副国（rank 18） */
-  guoBase: 16,
-  guoWeak: 11,
+  guoBase: 12,
+  guoWeak: 10,
   guoRiskFrom: 8,
   guoRiskK: 1.0,
   /** 副国冲正国（rank 19） */
@@ -36,11 +36,11 @@ export const TUNE = {
   topRiskK: 0.25,
   /** 票决通过线 */
   lineBase: 48,
-  lineFu: 78,
-  lineBu: 82,
-  lineGuo: 84,
+  lineFu: 76,
+  lineBu: 78,
+  lineGuo: 80,
   /** 副国→正国通过线：任职缩短后上调，压回约一成登顶率 */
-  lineTop: 78,
+  lineTop: 74,
 }
 
 export function monthsInPost(s: GameState): number {

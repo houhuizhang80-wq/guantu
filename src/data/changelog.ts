@@ -19,6 +19,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13o',
+    date: '今天',
+    items: [
+      { kind: '优化', text: '省部/副国票决门槛略回调（缩短任职月数后曾过紧），512 局稳妥 Bot 下各出身均有机会到副部以上，正国约 6%。' },
+    ],
+  },
+  {
     ver: '2026.09.13n',
     date: '今天',
     items: [
