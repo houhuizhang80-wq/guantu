@@ -7,6 +7,7 @@ import { localizePlace } from '../data/provinces'
 import { factionVoteBonus } from './faction'
 import { setPostRank, maxAgeForRank } from './age'
 import { bondVoteBonus, syncBonds, patronGateRelax } from './network'
+import { applyPromoMashOnce, mashLimitFor } from './engagement'
 
 const STAGES: PromoTrack['stage'][] = ['minzhu', 'kaocha', 'gongshi', 'piaojue', 'renmian']
 
@@ -183,7 +184,7 @@ export function advancePromo(
   // 风险/草率分：无论成败都记账；五维收益仅在过关后结算，防止反复刷失败策略白嫖属性
   if (strat) {
     if (strat.riskDelta) s.risk = clamp(s.risk + strat.riskDelta, 0, 100)
-    if (strat.mashDelta) s.mashScore = clamp((s.mashScore ?? 0) + strat.mashDelta, 0, 100)
+    if (strat.mashDelta) applyPromoMashOnce(s, strat.mashDelta)
   }
   const grantStratFx = () => {
     if (strat) applyFxToAttrs(s.attrs, strat.fx)
@@ -470,7 +471,7 @@ export function confirmAppointment(s: GameState): boolean {
   s.promo = null
   s.eventsHandledThisPost = 0
   s.lastActionKey = null
-  s.mashScore = Math.max(0, (s.mashScore ?? 0) - 15)
+  s.mashScore = Math.max(0, (s.mashScore ?? 0) - 30)
   // 用完靠山窗口：任免落位后清零，避免无限吃红利
   if (s.flags.patronAssist) {
     s.flags.patronAssist = 0
@@ -557,7 +558,8 @@ export function promoFailReview(s: GameState, failed: string): string {
     lines.push(`党委票决看综合盘：关系 ${a.GX}、政绩 ${a.ZJ}、廉洁 ${a.Lian}。届中更难——本岗再干满一届会好过些；可选「会前充分汇报」。`)
   }
   if (failed.includes('草率')) {
-    lines.push(`草率分偏高（当前 ${s.mashScore ?? 0}）：认真轮换选项、少快进，几回事件后会降。`)
+    const cap = mashLimitFor(getPost(s.postId).rank)
+    lines.push(`草率分偏高（当前 ${s.mashScore ?? 0}/${cap}）：认真轮换选项、少快进，会逐渐回落；上任后会大幅清零。`)
   }
   if (failed.includes('经手事件')) {
     lines.push(`本岗经手事件还不够（${s.eventsHandledThisPost ?? 0} 件）：多处置本月事件，别只点快进。`)
@@ -568,3 +570,5 @@ export function promoFailReview(s: GameState, failed: string): string {
   lines.push('失败已记入档案，可在设置导出备份。')
   return lines.join('\n')
 }
+
+export { mashLimitFor }

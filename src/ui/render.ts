@@ -16,6 +16,7 @@ import { loadOriginsDone } from '../state/origins_done'
 import { buildHelpSections } from '../data/help'
 import { formatFx, prestige, riskLevel, dateLabel, originNetworkLine } from '../state/game'
 import { SLOT_COUNT, readSlot, cloudSyncState } from '../state/saves'
+import { mashLimitFor } from '../systems/engagement'
 import { availablePaths } from '../systems/promotion'
 import { goalCurrent, goalDone, goalTargetText } from '../systems/goals'
 import { factionName } from '../systems/faction'
@@ -1523,6 +1524,16 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
 
   const months = (s.flags.monthsInPost as number) ?? 0
   const termYears = (months / 12).toFixed(1)
+  const mash = s.mashScore ?? 0
+  const mashCap = mashLimitFor(post.rank)
+  const mashWarnTxt =
+    mash >= mashCap
+      ? ` · 草率 <b>${mash}/${mashCap} 已锁死</b>`
+      : mash >= mashCap - 10
+        ? ` · 草率 ${mash}/${mashCap} 接近锁死`
+        : mash >= 20
+          ? ` · 草率 ${mash}/${mashCap}`
+          : ''
   let promoHtml = ''
   if (s.probationLeft > 0) {
     promoHtml = `<p class="promo-wait">任职试用期还剩 <strong>${s.probationLeft}</strong> 个月，期内一般不调整职务。</p>`
@@ -1591,7 +1602,8 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     <ol class="rung-list">${rungHtml}</ol>
     <p class="ladder-law">领导职务序列 + 职务与职级并行。股级为基层内设。选拔：推荐→考察→公示→任免，领导职务试用期一年。</p>
     <div class="promo-box">
-      <div class="chapter-line">本岗 ${months} 个月（约 ${termYears} 年） · 年龄 ${s.age} · 经手事件 ${s.eventsHandledThisPost ?? 0} 件${(s.mashScore ?? 0) >= 40 ? ' · 草率分偏高' : ''}${s.lastAppraisal?.grade === '优秀' ? ' · 上年考核优秀' : ''}</div>
+      <div class="chapter-line">本岗 ${months} 个月（约 ${termYears} 年） · 年龄 ${s.age} · 经手事件 ${s.eventsHandledThisPost ?? 0} 件${mashWarnTxt}${s.lastAppraisal?.grade === '优秀' ? ' · 上年考核优秀' : ''}</div>
+      ${mash >= 20 && mash < mashCap ? `<p class="promo-wait" style="font-size:11px;margin:4px 0 0">草率分偏高：轮换选项、少快进会逐渐回落；上任后会大幅清零。</p>` : ''}
       ${promoHtml}
     </div>
   `

@@ -19,6 +19,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13n',
+    date: '今天',
+    items: [
+      { kind: '优化', text: '草率分改为阶梯累计（连 2/3/4 次分别 +4/+8/+12），不再第 4 次一次涨 18；草率分高时认真轮换降得更快。' },
+      { kind: '优化', text: '快进草率 +6 改为 +4，本月已排周计划可抵消；危险选拔策略同一月内草率只加一次。' },
+      { kind: '优化', text: '档案页常显「草率 Y/锁死线」，接近线会提示；上任后草率分清零更多（−30）。' },
+    ],
+  },
+  {
     ver: '2026.09.13m',
     date: '今天',
     items: [
