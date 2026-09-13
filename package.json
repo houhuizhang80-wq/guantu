@@ -14,6 +14,7 @@
     "sim": "npx tsx scripts/simulate.ts",
     "sim:smart": "npx tsx scripts/simulate_smart.ts",
     "sim:summit": "npx tsx scripts/simulate_zhengguo.ts",
+    "sim:levels": "npx tsx scripts/simulate_levels.ts",
     "verify:export": "npx tsx scripts/verify_export.ts",
     "verify:gameplay": "npx tsx scripts/verify_gameplay.ts",
     "verify:endings": "npx tsx scripts/verify_endings.ts"
