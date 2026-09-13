@@ -89,7 +89,13 @@ export const ENDINGS: Ending[] = [
     title: '舆情翻车',
     summary: '一条短视频、一篇外地号稿件，把十年履历烧成灰。通报里的措辞很克制，你的名字很克制地消失了。',
     priority: 78,
-    check: (s) => s.risk >= 75 && s.attrs.MX <= 25 && rank(s) >= 5,
+    check: (s) =>
+      s.risk >= 75 &&
+      s.attrs.MX <= 25 &&
+      rank(s) >= 5 &&
+      // 要有一点资历再「翻车」，避免开局两三年就因单点数值收档
+      s.turn >= 80 &&
+      s.age >= 35,
   },
 
   // ── 成功顶点（正国分岗专属；通用中枢兜底）──
@@ -291,10 +297,18 @@ export const ENDINGS: Ending[] = [
     title: '家风有亏',
     summary: '家里出了事，组织找你谈话。你说「我确实顾得少」。桌上的台历还停在出差那周。',
     priority: 88,
-    check: (s) =>
-      s.turn >= 36 &&
-      !!s.family &&
-      ((s.family.spouse && s.family.spouseMood < 15) || s.family.parentHealth < 18),
+    check: (s) => {
+      if (s.turn < 120) return false
+      if (s.age < 42) return false
+      if (rank(s) < 4) return false
+      if (!s.family) return false
+      const broken =
+        (!!s.family.spouse && s.family.spouseMood < 15) || s.family.parentHealth < 18
+      if (!broken) return false
+      // 家庭崩了是重打击，但壮年、仍有去路时应先当「危机」而不是直接终局
+      if (s.age < 55 && canStayClimb(s)) return false
+      return true
+    },
   },
   {
     id: 'paixi_fu',
@@ -340,14 +354,29 @@ export const ENDINGS: Ending[] = [
       '组织说「再看看」。你还在原来的岗位上，茶续了一杯又一杯。这一局先停在这里——或许下一次，路会不一样。',
     priority: 2,
     // 50 岁以下不判「停」：与收档类同为壮年期保护，避免 40 岁上下的正科被直接按下暂停键
-    check: (s) => s.turn >= 200 && rank(s) <= 5 && s.age >= 50 && s.age < 60,
+    check: (s) => {
+      if (s.turn < 200) return false
+      if (rank(s) > 5) return false
+      if (s.age < 50 || s.age >= 60) return false
+      // 还有可走的去向（哪怕暂时属性不够，也可继续攒）时不按暂停
+      if (availablePaths(s).some((p) => p.ok)) return false
+      return true
+    },
   },
   {
     id: 'jixu',
     title: '仕途未尽',
     summary: '这一局先停在这里。文件柜锁着，茶还温着。更高的台阶、更长的夜，都还在前面。',
     priority: 1,
-    check: (s) => s.turn >= 560,
+    check: (s) => {
+      // 总时长兜底，但不能在「还能升、也没到龄」时硬掐
+      if (s.turn < 560) return false
+      if (canStayClimb(s)) return false
+      const r = rank(s)
+      const ret = r <= 7 ? 60 : r <= 11 ? 63 : r <= 14 ? 65 : r <= 17 ? 68 : 70
+      if (s.age < ret - 2) return false
+      return true
+    },
   },
 ]
 

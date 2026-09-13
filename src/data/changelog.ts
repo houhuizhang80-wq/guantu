@@ -19,6 +19,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13l',
+    date: '今天',
+    items: [
+      { kind: '修复', text: '「家风有亏」不再在壮年、仍有晋升去路时直接终局；须 42 岁以上、满一定资历，且 55 岁前有路可走时不收档。' },
+      { kind: '修复', text: '「仕途未尽」（超长局兜底）不再在还能升、也没到龄时硬掐。' },
+      { kind: '修复', text: '「舆情翻车」增加资历门槛（约 80 月 / 35 岁），避免开局几年就因单点数值收档。' },
+      { kind: '优化', text: '「生涯暂缓」在仍有可走去向时不触发。' },
+    ],
+  },
+  {
     ver: '2026.09.13k',
     date: '今天',
     items: [
