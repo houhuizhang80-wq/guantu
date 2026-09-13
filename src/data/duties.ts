@@ -1454,6 +1454,143 @@ export const ZHENGFA_XINFANG_POOL: DutyItem[] = [
   },
 ]
 
+/** 检察 / 反贪条线专属公务 */
+export const JIANCHA_PISHI_POOL: DutyItem[] = [
+  {
+    id: 'jc_ps_pibu',
+    kind: 'pishi',
+    title: '关于提请批准逮捕某职务犯罪嫌疑人的报告',
+    text: '监委移送：涉嫌受贿，数额巨大，到案后部分供述与书证吻合。律师明天要申请会见。',
+    choices: [
+      {
+        id: 'pi',
+        label: '批：依法审查，符合条件即捕',
+        hint: '硬',
+        score: 14,
+        fx: { Lian: 5, NL: 4, ZJ: 4 },
+        note: '逮捕决定书送出。',
+      },
+      {
+        id: 'bu',
+        label: '批：要求补充两组书证再报',
+        hint: '稳',
+        score: 12,
+        fx: { NL: 5, Lian: 3 },
+        note: '补侦提纲列了八条。',
+      },
+      {
+        id: 'kuan',
+        label: '批：考虑「配合调查」，慎用强制措施',
+        hint: '有风险',
+        score: 4,
+        fx: { GX: 3, Lian: -5 },
+        riskDelta: 5,
+        note: '有人松了一口气。',
+      },
+    ],
+  },
+  {
+    id: 'jc_ps_gongyi',
+    kind: 'pishi',
+    title: '关于对某河道污染提起行政公益诉讼的审批',
+    text: '诉前检察建议发了两个月，整改仍不到位。水样检测超标。要不要诉到法院？',
+    choices: [
+      {
+        id: 'su',
+        label: '批：依法提起行政公益诉讼',
+        hint: '亮剑',
+        score: 14,
+        fx: { MX: 6, ZJ: 5, Lian: 4, NL: 3 },
+        note: '起诉书递到了法院立案庭。',
+      },
+      {
+        id: 'cu',
+        label: '批：再发一次检察建议并公开',
+        hint: '再给机会',
+        score: 10,
+        fx: { MX: 3, ZJ: 3, NL: 2 },
+        note: '建议书上了网。',
+      },
+      {
+        id: 'huan',
+        label: '批：等环保专项行动一并处理',
+        hint: '拖延',
+        score: 3,
+        fx: { ZJ: 1, MX: -3 },
+        riskDelta: 3,
+        note: '河水又黑了一层。',
+      },
+    ],
+  },
+]
+
+export const JIANCHA_XINFANG_POOL: DutyItem[] = [
+  {
+    id: 'jc_xf_1',
+    kind: 'xinfang',
+    title: '申诉：判决「太轻」',
+    text: '被害人家属拿着判决书，手指发抖：「三年？我孩子一辈子都毁了。」他们要检察院抗诉。',
+    choices: [
+      {
+        id: 'shen',
+        label: '调卷审查，依法决定是否抗诉',
+        hint: '程序',
+        score: 14,
+        fx: { NL: 5, Lian: 4, MX: 4, ZJ: 3 },
+        note: '案管办连夜调卷。',
+      },
+      {
+        id: 'shi',
+        label: '当面释法，讲清量刑依据',
+        hint: '说理',
+        score: 11,
+        fx: { MX: 4, NL: 3, Lian: 2 },
+        note: '他们走时还在哭，但不拍桌子了。',
+      },
+      {
+        id: 'tui',
+        label: '让他们去找法院',
+        hint: '推',
+        score: 2,
+        fx: { MX: -5, Risk: 3 },
+        note: '走廊里回荡着哭声。',
+      },
+    ],
+  },
+  {
+    id: 'jc_xf_2',
+    kind: 'xinfang',
+    title: '举报：法官枉法',
+    text: '一封匿名信称某法官与律师过从甚密。材料打印得很整齐，却像有人刻意引导。',
+    choices: [
+      {
+        id: 'yi',
+        label: '按审判监督程序线索依法初核',
+        hint: '较真',
+        score: 13,
+        fx: { Lian: 5, NL: 4, ZJ: 3 },
+        note: '初核方案定了。',
+      },
+      {
+        id: 'yi2',
+        label: '移送纪委监委并同步报告上级院',
+        hint: '规范',
+        score: 12,
+        fx: { Lian: 4, NL: 3, ZJ: 3 },
+        note: '移送函发了出去。',
+      },
+      {
+        id: 'ya',
+        label: '压下，避免「影响司法形象」',
+        hint: '捂盖子',
+        score: 1,
+        fx: { Lian: -6, Risk: 6 },
+        note: '信进了碎纸机旁边。',
+      },
+    ],
+  },
+]
+
 export function getDutyItem(id: string): DutyItem | null {
   return (
     PISHI_POOL.find((x) => x.id === id) ||
@@ -1465,6 +1602,8 @@ export function getDutyItem(id: string): DutyItem | null {
     JIJIAN_XINFANG_POOL.find((x) => x.id === id) ||
     ZHENGFA_PISHI_POOL.find((x) => x.id === id) ||
     ZHENGFA_XINFANG_POOL.find((x) => x.id === id) ||
+    JIANCHA_PISHI_POOL.find((x) => x.id === id) ||
+    JIANCHA_XINFANG_POOL.find((x) => x.id === id) ||
     null
   )
 }

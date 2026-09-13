@@ -19,6 +19,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13s',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '检察/反贪晋升线：县检察院副检察长→检察长，市检副→正，省检副→正，最高检副检察长→检察长（正国分岗）；可从副镇长/公安/纪委等交流进入。' },
+      { kind: '新增', text: '检察专属事件 8 条（批捕、起诉、反贪专案、出庭、公益诉讼、羁押审查、说情电话、开放日）与专属公务（批捕/公益诉讼批示、抗诉与枉法线索接访）。' },
+      { kind: '新增', text: '成就「公诉人」。' },
+    ],
+  },
+  {
     ver: '2026.09.13r',
     date: '今天',
     items: [

@@ -40,6 +40,11 @@ function eligible(s: GameState, e: GameEvent): boolean {
       (s.paths ?? []).includes('zhengfa')
     if (!onTrack) return false
   }
+  if (e.pathTag === 'jiancha') {
+    const title = getPost(s.postId).title
+    const onTrack = title.includes('检察') || (s.paths ?? []).includes('jiancha')
+    if (!onTrack) return false
+  }
   const rank = getPost(s.postId).rank
   if (typeof e.minRank === 'number' && rank < e.minRank) return false
   if (typeof e.maxRank === 'number' && rank > e.maxRank) return false

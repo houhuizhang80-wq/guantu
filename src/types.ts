@@ -162,7 +162,7 @@ export interface GameEvent {
   /** 仅这些省份气质可见（coastal/north/...） */
   flavors?: string[]
   /** 仅当前岗位属于该条线时出现（jijian 纪检/巡视、zhengfa 政法公安等） */
-  pathTag?: 'jijian' | 'zhengfa'
+  pathTag?: 'jijian' | 'zhengfa' | 'jiancha'
   weight: number
   minRank?: number
   maxRank?: number

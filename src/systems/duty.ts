@@ -14,6 +14,8 @@ import {
   JIJIAN_XINFANG_POOL,
   ZHENGFA_PISHI_POOL,
   ZHENGFA_XINFANG_POOL,
+  JIANCHA_PISHI_POOL,
+  JIANCHA_XINFANG_POOL,
 } from '../data/duties'
 
 function onJijianTrack(s: GameState): boolean {
@@ -36,6 +38,10 @@ function onZhengfaTrack(s: GameState): boolean {
     title.includes('司法') ||
     (s.paths ?? []).includes('zhengfa')
   )
+}
+
+function onJianchaTrack(s: GameState): boolean {
+  return getPost(s.postId).title.includes('检察') || (s.paths ?? []).includes('jiancha')
 }
 
 export function dutyCost(kind: DutyKind): number {
@@ -79,7 +85,8 @@ export function startDuty(s: GameState, kind: DutyKind): DutyRun {
   let run: DutyRun
   if (kind === 'pishi') {
     let pool = PISHI_POOL
-    if (onJijianTrack(s) && JIJIAN_PISHI_POOL.length) pool = [...JIJIAN_PISHI_POOL, ...PISHI_POOL]
+    if (onJianchaTrack(s) && JIANCHA_PISHI_POOL.length) pool = [...JIANCHA_PISHI_POOL, ...PISHI_POOL]
+    else if (onJijianTrack(s) && JIJIAN_PISHI_POOL.length) pool = [...JIJIAN_PISHI_POOL, ...PISHI_POOL]
     else if (onZhengfaTrack(s) && ZHENGFA_PISHI_POOL.length)
       pool = [...ZHENGFA_PISHI_POOL, ...PISHI_POOL]
     const queue = pickFromPool(pool, rank, 4)
@@ -94,7 +101,9 @@ export function startDuty(s: GameState, kind: DutyKind): DutyRun {
     }
   } else if (kind === 'xinfang') {
     let xfPool = XINFANG_POOL
-    if (onJijianTrack(s) && JIJIAN_XINFANG_POOL.length)
+    if (onJianchaTrack(s) && JIANCHA_XINFANG_POOL.length)
+      xfPool = [...JIANCHA_XINFANG_POOL, ...XINFANG_POOL]
+    else if (onJijianTrack(s) && JIJIAN_XINFANG_POOL.length)
       xfPool = [...JIJIAN_XINFANG_POOL, ...XINFANG_POOL]
     else if (onZhengfaTrack(s) && ZHENGFA_XINFANG_POOL.length)
       xfPool = [...ZHENGFA_XINFANG_POOL, ...XINFANG_POOL]

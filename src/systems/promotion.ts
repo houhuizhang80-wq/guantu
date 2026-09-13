@@ -451,6 +451,10 @@ export function confirmAppointment(s: GameState): boolean {
     if (!s.paths.includes('quntuan')) s.paths.push('quntuan')
     s.flags.path_quntuan = true
   }
+  if (target.title.includes('检察')) {
+    if (!s.paths.includes('jiancha')) s.paths.push('jiancha')
+    s.flags.path_jiancha = true
+  }
   if (target.title.includes('人大') || target.title.includes('政协')) {
     if (!s.paths.includes('renda')) s.paths.push('renda')
     s.flags.path_renda = true
