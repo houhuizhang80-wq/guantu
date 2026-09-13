@@ -1285,6 +1285,175 @@ export const JIJIAN_XINFANG_POOL: DutyItem[] = [
   },
 ]
 
+/** 政法 / 公安条线专属批示与接访 */
+export const ZHENGFA_PISHI_POOL: DutyItem[] = [
+  {
+    id: 'zf_ps_lian',
+    kind: 'pishi',
+    title: '关于某刑案提请批准逮捕的报告',
+    text: '法制员提示：主要证据已固定，但同案犯在逃，有翻供风险。侦查员催得紧。',
+    choices: [
+      {
+        id: 'bu',
+        label: '批：事实清楚、证据充分，依法报捕',
+        hint: '硬，担责',
+        score: 13,
+        fx: { ZJ: 4, NL: 4, Lian: 3 },
+        note: '批捕后追逃同步上。',
+      },
+      {
+        id: 'bu2',
+        label: '批：先补两处书证再报',
+        hint: '更稳',
+        score: 12,
+        fx: { NL: 5, Lian: 3, ZJ: 2 },
+        note: '卷宗又厚了一寸。',
+      },
+      {
+        id: 'ya',
+        label: '批：先压着，等舆论过去',
+        hint: '危险',
+        score: 1,
+        fx: { Lian: -5, Risk: 7 },
+        note: '取保候审通知发了出去。',
+      },
+    ],
+  },
+  {
+    id: 'zf_ps_zhifa',
+    kind: 'pishi',
+    title: '关于规范行政执法裁量权的实施意见',
+    text: '法制科要推「同类事项同罚」。执法大队说：不重罚镇不住。企业主说：标准不透明。',
+    choices: [
+      {
+        id: 'tui',
+        label: '批：公开裁量基准，压缩弹性空间',
+        hint: '改革味',
+        score: 14,
+        fx: { Lian: 6, MX: 4, NL: 4, ZJ: 3 },
+        note: '细则挂上了网。',
+      },
+      {
+        id: 'zhong',
+        label: '批：先试点两个大队，再全面推开',
+        hint: '稳妥',
+        score: 11,
+        fx: { NL: 4, ZJ: 3, Lian: 2 },
+        note: '试点报告开始攒材料。',
+      },
+      {
+        id: 'huan',
+        label: '批：原则同意，时机成熟再办',
+        hint: '空转',
+        score: 4,
+        fx: { ZJ: 1 },
+        riskDelta: 2,
+        note: '文件进了抽屉。',
+      },
+    ],
+  },
+  {
+    id: 'zf_ps_anbao',
+    kind: 'pishi',
+    title: '关于大型活动安全许可的请示',
+    text: '音乐节预计三万人。主办方方案「很美好」：安检口两个、医疗点一个、疏散路线画得很抽象。',
+    choices: [
+      {
+        id: 'fou',
+        label: '批：不许可，方案未达安全标准',
+        hint: '硬气',
+        score: 14,
+        fx: { Lian: 5, ZJ: 3, MX: 2 },
+        note: '主办方骂骂咧咧走了。',
+      },
+      {
+        id: 'gai',
+        label: '批：限整改后复审：加安检、医疗与疏散',
+        hint: '放行带条件',
+        score: 12,
+        fx: { NL: 5, ZJ: 4, Lian: 3 },
+        note: '整改清单贴在墙上。',
+      },
+      {
+        id: 'guo',
+        label: '批：同意，属地加强现场力量即可',
+        hint: '赌运气',
+        score: 2,
+        fx: { ZJ: 2, MX: -2 },
+        riskDelta: 6,
+        note: '许可章盖了下去。',
+      },
+    ],
+  },
+]
+
+export const ZHENGFA_XINFANG_POOL: DutyItem[] = [
+  {
+    id: 'zf_xf_1',
+    kind: 'xinfang',
+    title: '控告：民警不作为',
+    text: '大姐哭着说电动车被偷，派出所只做了登记。她拿出处警回执：「就这一张纸。」',
+    choices: [
+      {
+        id: 'cha',
+        label: '调取天网与处警记录，限期破案或说明',
+        hint: '较真',
+        score: 14,
+        fx: { MX: 6, NL: 4, ZJ: 4, Lian: 3 },
+        note: '所长被叫来汇报。',
+      },
+      {
+        id: 'jie',
+        label: '当面解释立案标准，承诺反馈',
+        hint: '沟通',
+        score: 10,
+        fx: { MX: 3, NL: 2, Lian: 2 },
+        note: '她走时还在擦眼泪。',
+      },
+      {
+        id: 'tui',
+        label: '让属地派出所「再接待一次」',
+        hint: '踢皮球',
+        score: 2,
+        fx: { MX: -4, Risk: 3 },
+        note: '电话转了三个科室。',
+      },
+    ],
+  },
+  {
+    id: 'zf_xf_2',
+    kind: 'xinfang',
+    title: '申请国家赔偿',
+    text: '当事人曾被错误羁押 14 天，现已撤案。他把国家赔偿申请书拍在桌上，手在抖。',
+    choices: [
+      {
+        id: 'pei',
+        label: '依法受理，启动赔偿程序',
+        hint: '法治',
+        score: 14,
+        fx: { Lian: 7, MX: 4, NL: 4 },
+        note: '赔偿决定书进入流程。',
+      },
+      {
+        id: 'he',
+        label: '组织听证，公开计算依据',
+        hint: '透明',
+        score: 12,
+        fx: { Lian: 5, NL: 4, MX: 3 },
+        note: '听证室坐满了人。',
+      },
+      {
+        id: 'tuo',
+        label: '建议他先走民事诉讼',
+        hint: '推诿',
+        score: 1,
+        fx: { Lian: -5, MX: -4, Risk: 5 },
+        note: '他在走廊站了很久。',
+      },
+    ],
+  },
+]
+
 export function getDutyItem(id: string): DutyItem | null {
   return (
     PISHI_POOL.find((x) => x.id === id) ||
@@ -1294,6 +1463,8 @@ export function getDutyItem(id: string): DutyItem | null {
     PEIXUN_DAYS.find((x) => x.id === id) ||
     JIJIAN_PISHI_POOL.find((x) => x.id === id) ||
     JIJIAN_XINFANG_POOL.find((x) => x.id === id) ||
+    ZHENGFA_PISHI_POOL.find((x) => x.id === id) ||
+    ZHENGFA_XINFANG_POOL.find((x) => x.id === id) ||
     null
   )
 }

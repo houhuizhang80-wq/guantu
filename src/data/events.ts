@@ -23,6 +23,7 @@ import { MID_DAILY_EVENTS, LOW_DAILY_EXTRA } from './events_mid'
 import { CHAIN_EVENTS } from './events_chain'
 import { ORIGIN_LONG_EVENTS } from './events_origin_long'
 import { JIJIAN_EVENTS } from './events_jijian'
+import { ZHENGFA_EVENTS } from './events_zhengfa'
 
 /**
  * 乡镇篇完整剧本（云河县 · 青石镇）
@@ -1158,6 +1159,7 @@ export const EVENTS: GameEvent[] = [
   ...CHAIN_EVENTS,
   ...ORIGIN_LONG_EVENTS,
   ...JIJIAN_EVENTS,
+  ...ZHENGFA_EVENTS,
 ].map(expandMainChoices)
 
 export function getEvent(id: string): GameEvent {

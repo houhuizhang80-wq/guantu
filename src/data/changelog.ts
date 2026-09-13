@@ -19,6 +19,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13r',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '政法/公安条线专属事件 10 条（处警单、刑专会商、执法记录仪、群体聚集、侦监联席、行政复议、队伍整肃、督导组下沉等）。' },
+      { kind: '新增', text: '政法条线专属公务：报捕批示、裁量基准、大型活动安保许可，以及不作为控告、国家赔偿接访——在政法/公安/检察/法院/司法岗位时优先进入批示台与信访接待。' },
+    ],
+  },
+  {
     ver: '2026.09.13q',
     date: '今天',
     items: [

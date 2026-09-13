@@ -29,6 +29,17 @@ function eligible(s: GameState, e: GameEvent): boolean {
       (s.paths ?? []).includes('jijian')
     if (!onTrack) return false
   }
+  if (e.pathTag === 'zhengfa') {
+    const title = getPost(s.postId).title
+    const onTrack =
+      title.includes('政法') ||
+      title.includes('公安') ||
+      title.includes('检察') ||
+      title.includes('法院') ||
+      title.includes('司法') ||
+      (s.paths ?? []).includes('zhengfa')
+    if (!onTrack) return false
+  }
   const rank = getPost(s.postId).rank
   if (typeof e.minRank === 'number' && rank < e.minRank) return false
   if (typeof e.maxRank === 'number' && rank > e.maxRank) return false

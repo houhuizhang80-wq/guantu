@@ -12,6 +12,8 @@ import {
   PEIXUN_DAYS,
   JIJIAN_PISHI_POOL,
   JIJIAN_XINFANG_POOL,
+  ZHENGFA_PISHI_POOL,
+  ZHENGFA_XINFANG_POOL,
 } from '../data/duties'
 
 function onJijianTrack(s: GameState): boolean {
@@ -21,6 +23,18 @@ function onJijianTrack(s: GameState): boolean {
     title.includes('监委') ||
     title.includes('巡视') ||
     (s.paths ?? []).includes('jijian')
+  )
+}
+
+function onZhengfaTrack(s: GameState): boolean {
+  const title = getPost(s.postId).title
+  return (
+    title.includes('政法') ||
+    title.includes('公安') ||
+    title.includes('检察') ||
+    title.includes('法院') ||
+    title.includes('司法') ||
+    (s.paths ?? []).includes('zhengfa')
   )
 }
 
@@ -64,7 +78,10 @@ export function startDuty(s: GameState, kind: DutyKind): DutyRun {
   s.actionPoints -= cost
   let run: DutyRun
   if (kind === 'pishi') {
-    const pool = onJijianTrack(s) && JIJIAN_PISHI_POOL.length ? [...JIJIAN_PISHI_POOL, ...PISHI_POOL] : PISHI_POOL
+    let pool = PISHI_POOL
+    if (onJijianTrack(s) && JIJIAN_PISHI_POOL.length) pool = [...JIJIAN_PISHI_POOL, ...PISHI_POOL]
+    else if (onZhengfaTrack(s) && ZHENGFA_PISHI_POOL.length)
+      pool = [...ZHENGFA_PISHI_POOL, ...PISHI_POOL]
     const queue = pickFromPool(pool, rank, 4)
     run = {
       kind,
@@ -76,10 +93,11 @@ export function startDuty(s: GameState, kind: DutyKind): DutyRun {
       done: false,
     }
   } else if (kind === 'xinfang') {
-    const xfPool =
-      onJijianTrack(s) && JIJIAN_XINFANG_POOL.length
-        ? [...JIJIAN_XINFANG_POOL, ...XINFANG_POOL]
-        : XINFANG_POOL
+    let xfPool = XINFANG_POOL
+    if (onJijianTrack(s) && JIJIAN_XINFANG_POOL.length)
+      xfPool = [...JIJIAN_XINFANG_POOL, ...XINFANG_POOL]
+    else if (onZhengfaTrack(s) && ZHENGFA_XINFANG_POOL.length)
+      xfPool = [...ZHENGFA_XINFANG_POOL, ...XINFANG_POOL]
     const ids = pickFromPool(xfPool, rank, 1)
     // 取有 next 链的主案例
     const start = xfPool.find((x) => x.id === ids[0] && x.next) || xfPool[0]
