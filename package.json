@@ -1,0 +1,26 @@
+{
+  "name": "guantu",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "smoke": "npx tsx scripts/smoke.ts",
+    "smoke:duty": "npx tsx scripts/smoke_duty.ts",
+    "smoke:benxiang": "npx tsx scripts/smoke_benxiang.ts",
+    "smoke:extra": "npx tsx scripts/smoke_extra.ts",
+    "sim": "npx tsx scripts/simulate.ts",
+    "sim:smart": "npx tsx scripts/simulate_smart.ts",
+    "sim:summit": "npx tsx scripts/simulate_zhengguo.ts"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vite-plugin-singlefile": "^2.3.3"
+  },
+  "dependencies": {
+    "@tencent-ai/workbuddy-cloud-sdk": "dev"
+  }
+}

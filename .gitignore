@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# WorkBuddy / platform bindings (not for public repo)
+.workbuddy/
+.wbapp_*.genie
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Local env
+.env
+.env.*
+*.local
