@@ -1096,13 +1096,20 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
 
   // 经营台：台账 + 舆情 + 周计划 + 调研 + 秘书
   const projBox = el('aside', 'panel side-panel panel-proj')
-  projBox.append(panelHead('经营台', '台账·舆情·计划·调研'))
+  projBox.append(panelHead('经营台', '在办台账 · 舆情 · 周计划 · 调研'))
 
   // 台账
   const projSec = el('div')
-  projSec.innerHTML = `<div class="fam-line"><b>在办台账</b> ${s.projects?.length ?? 0}/3</div>`
-  if (!s.projects || s.projects.length === 0) {
-    projSec.append(el('p', 'muted proj-empty', '本月行动有机会立项。'))
+  const projN = s.projects?.length ?? 0
+  projSec.innerHTML = `<div class="fam-line"><b>在办台账</b> ${projN}/3</div>`
+  if (projN === 0) {
+    projSec.append(
+      el(
+        'p',
+        'muted proj-empty',
+        '暂无在办台账。本月「下沉 / 写材料 / 跑项目」等行动有机会立项，办结后计入政绩与年度考核。',
+      ),
+    )
   } else {
     for (const p of s.projects) {
       const row = el('div', 'proj-row')
@@ -1171,11 +1178,26 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
       .join(' · ')
     wp.innerHTML += `<div class="fam-line">${names}</div>`
   } else {
-    wp.innerHTML += `<p class="muted" style="font-size:12px;margin:0 0 6px">排出四周侧重，月末有加成；不排会吃草率分。</p>`
+    const blocked = !!s.currentEventId
+    wp.innerHTML += `<p class="muted" style="font-size:12px;margin:0 0 6px">${
+      blocked
+        ? '本月还有事件未处置——请先在「事务」页选完做法，再回来排周计划。'
+        : '排出四周侧重（至少选 2 周），月末有加成；不排会吃草率分。'
+    }</p>`
     const slotSel = el('div')
     slotSel.style.cssText = 'display:flex;flex-direction:column;gap:4px'
     // 未提交的选择放在模块级草稿：全量重渲染后仍能回填，不会选到一半被清空
     const picks: (string | null)[] = [0, 1, 2, 3].map((i) => weekDraft[i] ?? null)
+    const wbtn = el('button', 'btn btn-primary')
+    const refreshBtn = () => {
+      const filled = picks.filter(Boolean).length
+      wbtn.disabled = blocked || filled < 2
+      wbtn.textContent = blocked
+        ? '先处置本月事件'
+        : filled < 2
+          ? `确认周计划（已选 ${filled}/至少 2）`
+          : `确认周计划（已选 ${filled}/4）`
+    }
     for (let i = 0; i < 4; i++) {
       const sel = document.createElement('select')
       sel.className = 'week-sel'
@@ -1186,12 +1208,13 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
       sel.addEventListener('change', () => {
         picks[i] = sel.value || null
         weekDraft = [...picks]
+        refreshBtn()
       })
       slotSel.append(sel)
     }
-    const wbtn = el('button', 'btn btn-primary')
     wbtn.textContent = '确认周计划'
-    wbtn.addEventListener('click', () => h.onWeekPlan(picks))
+    refreshBtn()
+    wbtn.addEventListener('click', () => h.onWeekPlan([...picks]))
     wp.append(slotSel, wbtn)
   }
   projBox.append(wp)
@@ -1369,6 +1392,26 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     <div class="risk-marks"><span>0</span><span>40</span><span>70</span><span>100</span></div>
   `
   left.append(riskBlock)
+
+  // 台账/周计划速览：主界面也能看见，避免「经营台」页签里找不到
+  const opsHint = el('div', 'fam-box ops-hint')
+  const projCount = s.projects?.length ?? 0
+  const weekState = s.weekPlanned
+    ? '已排'
+    : s.currentEventId
+      ? '待排（先处置事件）'
+      : '待排'
+  opsHint.append(panelHead('经营速览', '台账 · 周计划'))
+  opsHint.innerHTML += `
+    <div class="fam-line">在办台账 <b>${projCount}</b>/3${
+      projCount > 0
+        ? ' · ' + (s.projects || []).map((p) => p.name).join(' / ')
+        : ' · 暂无（行动有机会立项）'
+    }</div>
+    <div class="fam-line">周计划 <b>${weekState}</b></div>
+    <p class="muted" style="font-size:11px;margin:4px 0 0">点底部「经营台」查看详情并排计划。</p>
+  `
+  left.append(opsHint)
 
   // 纪检监察
   if (s.jijian) {
@@ -1773,7 +1816,7 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     { id: 'favor', label: '托人', icon: '托' },
     { id: 'faction', label: '派系', icon: '派' },
     { id: 'family', label: '家事', icon: '家' },
-    { id: 'proj', label: '经营', icon: '营' },
+    { id: 'proj', label: '经营台', icon: '营' },
     { id: 'more', label: '更多', icon: '更' },
   ]
   nav.innerHTML = tabs

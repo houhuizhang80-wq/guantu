@@ -19,6 +19,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13d',
+    date: '今天',
+    items: [
+      { kind: '修复', text: '周计划：失败时不再清空已选内容；至少选满 2 周才能确认；本月有事件未处置时按钮会提示先处理事件。' },
+      { kind: '优化', text: '台账更好找：底部页签改为「经营台」；干部档案侧栏增加「经营速览」，可直接看到在办台账与周计划状态。' },
+    ],
+  },
+  {
     ver: '2026.09.13c',
     date: '今天',
     items: [

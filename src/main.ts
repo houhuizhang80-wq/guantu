@@ -872,7 +872,8 @@ function draw() {
     },
     onWeekPlan: (slots: (string | null)[]) => {
       const r = setWeekPlan(state, slots)
-      resetWeekDraft()
+      // 失败时保留草稿，避免「选完一点就被清空」
+      if (r.ok) resetWeekDraft()
       state.lastFeedback = { title: '周计划', text: r.text }
       saveGame(state)
       draw()
