@@ -14,6 +14,7 @@ import {
   JIJIAN_XINFANG_POOL,
   ZHENGFA_PISHI_POOL,
   ZHENGFA_XINFANG_POOL,
+  NARROW_PISHI_POOL,
   JIANCHA_PISHI_POOL,
   JIANCHA_XINFANG_POOL,
 } from '../data/duties'
@@ -42,6 +43,22 @@ function onZhengfaTrack(s: GameState): boolean {
 
 function onJianchaTrack(s: GameState): boolean {
   return getPost(s.postId).title.includes('检察') || (s.paths ?? []).includes('jiancha')
+}
+
+function onNarrowTrack(s: GameState): boolean {
+  const t = getPost(s.postId).title
+  return (
+    t.includes('法院') ||
+    t.includes('司法') ||
+    t.includes('审计') ||
+    t.includes('统战') ||
+    t.includes('发改') ||
+    t.includes('财政') ||
+    t.includes('税务') ||
+    t.includes('海关') ||
+    t.includes('市场监管') ||
+    t.includes('市场监督')
+  )
 }
 
 export function dutyCost(kind: DutyKind): number {
@@ -89,6 +106,8 @@ export function startDuty(s: GameState, kind: DutyKind): DutyRun {
     else if (onJijianTrack(s) && JIJIAN_PISHI_POOL.length) pool = [...JIJIAN_PISHI_POOL, ...PISHI_POOL]
     else if (onZhengfaTrack(s) && ZHENGFA_PISHI_POOL.length)
       pool = [...ZHENGFA_PISHI_POOL, ...PISHI_POOL]
+    else if (onNarrowTrack(s) && NARROW_PISHI_POOL.length)
+      pool = [...NARROW_PISHI_POOL, ...PISHI_POOL]
     const queue = pickFromPool(pool, rank, 4)
     run = {
       kind,

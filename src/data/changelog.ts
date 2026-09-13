@@ -19,6 +19,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13w',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '法院/司法/审计/统战/发改财政/垂管专属事件 18 条与专属公务（判决签发、法援、审计结果、专项债等）。' },
+      { kind: '新增', text: '成就：法槌、法治践行者、经济卫士、同心圆、规划者、垂管一员、左膀右臂、桃李。' },
+      { kind: '优化', text: '玩法引导新增「新系统速览」；README 同步最新玩法。' },
+    ],
+  },
+  {
     ver: '2026.09.13v',
     date: '今天',
     items: [

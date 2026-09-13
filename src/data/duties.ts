@@ -1591,6 +1591,108 @@ export const JIANCHA_XINFANG_POOL: DutyItem[] = [
   },
 ]
 
+/** 法院 / 司法 / 审计 专属公务（批示台） */
+export const NARROW_PISHI_POOL: DutyItem[] = [
+  {
+    id: 'ct_ps_panjue',
+    kind: 'pishi',
+    title: '关于某行政案件判决书的签发',
+    text: '合议庭意见：确认行政行为违法但不撤销。有法官认为应一并判决赔偿。',
+    choices: [
+      {
+        id: 'qian',
+        label: '签发：确认违法并责令采取补救措施',
+        hint: '稳妥',
+        score: 13,
+        fx: { Lian: 4, NL: 4, ZJ: 3 },
+        note: '判决书送达。',
+      },
+      {
+        id: 'gai',
+        label: '要求补充说理后再签',
+        hint: '较真',
+        score: 12,
+        fx: { NL: 5, Lian: 3 },
+        note: '合议庭连夜改稿。',
+      },
+      {
+        id: 'wei',
+        label: '倾向「案结事了」，少判赔偿',
+        hint: '风险',
+        score: 3,
+        fx: { GX: 2, Lian: -4 },
+        riskDelta: 4,
+        note: '当事人可能上诉。',
+      },
+    ],
+  },
+  {
+    id: 'sf_ps_fayuan',
+    kind: 'pishi',
+    title: '关于扩大法律援助覆盖面的请示',
+    text: '法援中心申请将劳动争议、家事案件纳入优先援助。财政说补贴预算紧。',
+    choices: [
+      {
+        id: 'kuo',
+        label: '批：扩大覆盖面，补贴纳入预算保障',
+        hint: '民生',
+        score: 14,
+        fx: { MX: 6, ZJ: 4, Lian: 3, NL: 2 },
+        note: '覆盖面扩大了。',
+      },
+      {
+        id: 'dian',
+        label: '批：先试点两个街道，再推开',
+        hint: '稳妥',
+        score: 11,
+        fx: { MX: 3, ZJ: 3, NL: 2 },
+        note: '试点方案定了。',
+      },
+      {
+        id: 'huan',
+        label: '批：原则同意，明年再议',
+        hint: '拖延',
+        score: 3,
+        fx: { ZJ: 1, MX: -2 },
+        note: '申请进了抽屉。',
+      },
+    ],
+  },
+  {
+    id: 'sj_ps_baogao',
+    kind: 'pishi',
+    title: '关于某专项资金审计结果的报告',
+    text: '审计发现挤占挪用一千二百万。主管部门要求「内部整改，不宜扩大」。',
+    choices: [
+      {
+        id: 'gong',
+        label: '批：依法公告审计结果，督促整改',
+        hint: '硬',
+        score: 14,
+        fx: { Lian: 6, ZJ: 5, NL: 3 },
+        note: '公告上了网。',
+      },
+      {
+        id: 'yi',
+        label: '批：移送主管部门处理并跟踪',
+        hint: '稳妥',
+        score: 11,
+        fx: { ZJ: 4, Lian: 3, NL: 3 },
+        note: '移送函发出。',
+      },
+      {
+        id: 'nei',
+        label: '批：内部整改，暂不公告',
+        hint: '有风险',
+        score: 3,
+        fx: { GX: 3, Lian: -5 },
+        riskDelta: 5,
+        note: '有人松了口气。',
+      },
+    ],
+  },
+]
+
 export function getDutyItem(id: string): DutyItem | null {
   return (
     PISHI_POOL.find((x) => x.id === id) ||
@@ -1604,6 +1706,7 @@ export function getDutyItem(id: string): DutyItem | null {
     ZHENGFA_XINFANG_POOL.find((x) => x.id === id) ||
     JIANCHA_PISHI_POOL.find((x) => x.id === id) ||
     JIANCHA_XINFANG_POOL.find((x) => x.id === id) ||
+    NARROW_PISHI_POOL.find((x) => x.id === id) ||
     null
   )
 }

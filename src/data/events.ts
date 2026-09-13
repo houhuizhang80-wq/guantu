@@ -26,6 +26,7 @@ import { JIJIAN_EVENTS } from './events_jijian'
 import { ZHENGFA_EVENTS } from './events_zhengfa'
 import { JIANCHA_EVENTS } from './events_jiancha'
 import { JUNDI_EVENTS } from './events_jundi'
+import { NARROW_EVENTS } from './events_narrow'
 
 /**
  * 乡镇篇完整剧本（云河县 · 青石镇）
@@ -1164,6 +1165,7 @@ export const EVENTS: GameEvent[] = [
   ...ZHENGFA_EVENTS,
   ...JIANCHA_EVENTS,
   ...JUNDI_EVENTS,
+  ...NARROW_EVENTS,
 ].map(expandMainChoices)
 
 export function getEvent(id: string): GameEvent {

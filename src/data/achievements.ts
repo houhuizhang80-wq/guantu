@@ -134,6 +134,61 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (s) => getPost(s.postId).title.includes('检察') || s.paths.includes('jiancha'),
   },
   {
+    id: 'fayuan_xian',
+    name: '法槌',
+    desc: '进入法院条线',
+    check: (s) => getPost(s.postId).title.includes('法院'),
+  },
+  {
+    id: 'sifa_xian',
+    name: '法治践行者',
+    desc: '进入司法行政条线',
+    check: (s) => getPost(s.postId).title.includes('司法'),
+  },
+  {
+    id: 'shenji_xian',
+    name: '经济卫士',
+    desc: '进入审计条线',
+    check: (s) => getPost(s.postId).title.includes('审计'),
+  },
+  {
+    id: 'tongzhan_xian',
+    name: '同心圆',
+    desc: '进入统战条线',
+    check: (s) => getPost(s.postId).title.includes('统战'),
+  },
+  {
+    id: 'fazhan_xian',
+    name: '规划者',
+    desc: '进入发改/财政条线',
+    check: (s) =>
+      getPost(s.postId).title.includes('发改') ||
+      getPost(s.postId).title.includes('财政') ||
+      getPost(s.postId).title.includes('发展和改革'),
+  },
+  {
+    id: 'chui_xian',
+    name: '垂管一员',
+    desc: '进入税务/海关/市场监管等垂管条线',
+    check: (s) =>
+      getPost(s.postId).title.includes('税务') ||
+      getPost(s.postId).title.includes('海关') ||
+      getPost(s.postId).title.includes('市场监管') ||
+      getPost(s.postId).title.includes('市场监督'),
+  },
+  {
+    id: 'xinbu_zuo',
+    name: '左膀右臂',
+    desc: '指定心腹且信任达到 70',
+    check: (s) => !!s.confidant && s.confidant.trust >= 70,
+  },
+  {
+    id: 'menxia',
+    name: '桃李',
+    desc: '收满 3 位门生',
+    check: (s) => (s.proteges?.length ?? 0) >= 3,
+  },
+  {
     id: 'buwei_jing',
     name: '进京',
     desc: '进入国务院部委或中央机关',

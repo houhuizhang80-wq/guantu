@@ -45,6 +45,30 @@ function eligible(s: GameState, e: GameEvent): boolean {
     const onTrack = title.includes('检察') || (s.paths ?? []).includes('jiancha')
     if (!onTrack) return false
   }
+  if (e.pathTag === 'court') {
+    const title = getPost(s.postId).title
+    if (!(title.includes('法院') || title.includes('审判'))) return false
+  }
+  if (e.pathTag === 'sifa') {
+    const title = getPost(s.postId).title
+    if (!(title.includes('司法') || title.includes('矫正') || title.includes('法援'))) return false
+  }
+  if (e.pathTag === 'shenji') {
+    const title = getPost(s.postId).title
+    if (!title.includes('审计')) return false
+  }
+  if (e.pathTag === 'tongzhan') {
+    const title = getPost(s.postId).title
+    if (!(title.includes('统战') || title.includes('政协'))) return false
+  }
+  if (e.pathTag === 'fazhan') {
+    const title = getPost(s.postId).title
+    if (!(title.includes('发改') || title.includes('财政') || title.includes('发展和改革'))) return false
+  }
+  if (e.pathTag === 'chui') {
+    const title = getPost(s.postId).title
+    if (!(title.includes('税务') || title.includes('海关') || title.includes('市场监管') || title.includes('市场监督'))) return false
+  }
   const rank = getPost(s.postId).rank
   if (typeof e.minRank === 'number' && rank < e.minRank) return false
   if (typeof e.maxRank === 'number' && rank > e.maxRank) return false
