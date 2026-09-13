@@ -144,6 +144,33 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (s) => s.paths.includes('guoqi') || getPost(s.postId).title.includes('国企'),
   },
   {
+    id: 'yangqi_jing',
+    name: '央企席位',
+    desc: '交流进入中央企业',
+    check: (s) =>
+      s.paths.includes('yangqi') ||
+      getPost(s.postId).title.includes('央企') ||
+      getPost(s.postId).title.includes('中央企业'),
+  },
+  {
+    id: 'quntuan_xian',
+    name: '青年头',
+    desc: '担任团县委书记或市级群团领导',
+    check: (s) =>
+      s.paths.includes('quntuan') ||
+      getPost(s.postId).title.includes('团委') ||
+      getPost(s.postId).title.includes('总工会'),
+  },
+  {
+    id: 'renda_zhengxie',
+    name: '议政席',
+    desc: '进入人大或政协序列',
+    check: (s) =>
+      s.paths.includes('renda') ||
+      getPost(s.postId).title.includes('人大') ||
+      getPost(s.postId).title.includes('政协'),
+  },
+  {
     id: 'jia',
     name: '家和',
     desc: '配偶心情达到 85',

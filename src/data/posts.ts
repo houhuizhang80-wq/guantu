@@ -1,5 +1,6 @@
 import type { NextPath, Post, GameState } from '../types'
 import { EXTRA_POSTS, EXTRA_LINKS } from './posts_extra'
+import { MASS_POSTS, MASS_LINKS } from './posts_quntuan'
 import { engagementGate } from '../systems/engagement'
 import { ageGate } from '../systems/age'
 
@@ -2580,7 +2581,11 @@ function mergeRoutes(base: Post[], extra: Post[], links: { from: string; path: N
   return Array.from(map.values()).sort((a, b) => a.rank - b.rank)
 }
 
-export const POSTS: Post[] = mergeRoutes(BASE_POSTS, EXTRA_POSTS, EXTRA_LINKS).map((p) => {
+export const POSTS: Post[] = mergeRoutes(
+  BASE_POSTS,
+  [...EXTRA_POSTS, ...MASS_POSTS],
+  [...EXTRA_LINKS, ...MASS_LINKS],
+).map((p) => {
   // 领导职务默认任期约 5 年（60 月）；副国/正国拉到 7 年
   if (p.termMonths == null) {
     p.termMonths = p.rank >= 18 ? 78 : p.leader ? 60 : p.track === 'rank' ? 36 : 48

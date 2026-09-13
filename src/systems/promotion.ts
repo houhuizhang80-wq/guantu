@@ -436,6 +436,18 @@ export function confirmAppointment(s: GameState): boolean {
     if (!s.paths.includes('guoqi')) s.paths.push('guoqi')
     s.flags.path_guoqi = true
   }
+  if (target.title.includes('央企') || target.title.includes('中央企业')) {
+    if (!s.paths.includes('yangqi')) s.paths.push('yangqi')
+    s.flags.path_yangqi = true
+  }
+  if (target.title.includes('团委') || target.title.includes('总工会') || target.title.includes('妇联') || target.title.includes('群团')) {
+    if (!s.paths.includes('quntuan')) s.paths.push('quntuan')
+    s.flags.path_quntuan = true
+  }
+  if (target.title.includes('人大') || target.title.includes('政协')) {
+    if (!s.paths.includes('renda')) s.paths.push('renda')
+    s.flags.path_renda = true
+  }
   if (target.title.includes('部委') || target.title.includes('国务院') || target.title.includes('部长')) {
     if (!s.paths.includes('buwei')) s.paths.push('buwei')
     s.flags.path_buwei = true
