@@ -115,6 +115,10 @@ export function normalizeSave(p: GameState, slot: number): GameState {
   if (s.duchaLast === undefined) s.duchaLast = null
   if (s.tanxinCd == null) s.tanxinCd = 0
   if (s.campaign === undefined) s.campaign = null
+  if (s.policy === undefined) s.policy = null
+  if (s.factionTask === undefined) s.factionTask = null
+  if (s.pendingFactionTask === undefined) s.pendingFactionTask = null
+  if (s.factionTaskDone == null) s.factionTaskDone = []
   if (s.childPath == null) s.childPath = 'none'
   if (s.memoirPages == null) s.memoirPages = 0
   if (s.life == null) s.life = 1

@@ -62,6 +62,15 @@ import { playStampSound } from './ui/audio'
 import { maybeInvestigation, riskTick } from './systems/risk'
 import { advanceJijian } from './systems/jijian'
 import { monthlyDrift, startPromo, advancePromo, confirmAppointment, cancelPromo, availablePaths, canStartPromo, promoFailReview } from './systems/promotion'
+import {
+  startPolicy,
+  tickPolicy,
+  maybeOfferFactionTask,
+  acceptFactionTask,
+  declineFactionTask,
+  tickFactionTask,
+  peekFactionTask,
+} from './systems/policy'
 import { checkEnding } from './systems/ending'
 import {
   type ActionId,
@@ -940,6 +949,24 @@ function draw() {
       saveGame(state)
       draw()
     },
+    onFactionTask: (choice) => {
+      const pending = peekFactionTask(state)
+      if (!pending) {
+        draw()
+        return
+      }
+      const r = choice === 'accept' ? acceptFactionTask(state, pending) : declineFactionTask(state, pending)
+      state.lastFeedback = { title: '派系交办', text: r.text }
+      saveGame(state)
+      draw()
+    },
+    onStartPolicy: (id) => {
+      const r = startPolicy(state, id)
+      state.lastFeedback = { title: '政策试点', text: r.text }
+      if (r.ok) pushLog(state, r.text)
+      saveGame(state)
+      draw()
+    },
     onNewGame: () => {
       const ownerId = authUser()?.id ?? ''
       const ownerNick = authNickname()
@@ -1443,6 +1470,11 @@ function advanceMonth() {
   const bondEv = maybeBondEvent(state)
   if (bondEv) pushLog(state, bondEv)
   factionHeatTick(state)
+  const polNote = tickPolicy(state)
+  if (polNote) state.lastFeedback = { title: '政策试点', text: polNote }
+  const ftNote = tickFactionTask(state)
+  if (ftNote) pushLog(state, ftNote)
+  maybeOfferFactionTask(state)
   ageTick(state)
   enterRetired(state)
   if (state.factionCd > 0) state.factionCd -= 1

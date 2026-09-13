@@ -1202,3 +1202,35 @@ export function getEventText(
 
 export const TOWNSHIP_EVENT_COUNT = TOWNSHIP_EVENTS.length
 export const ALL_EVENT_COUNT = EVENTS.length
+
+/** 图鉴未解锁条目的解锁提示 */
+export function eventUnlockHint(ev: GameEvent): string {
+  if (ev.onlyOnce && (ev.kind === 'main' || ev.id.startsWith('chain_'))) {
+    return ev.id.startsWith('chain_')
+      ? '专项链：需先触发链首事件，县处–厅局阶段优先接续'
+      : '主线/一次性：按故事顺序或条件触发'
+  }
+  if (ev.originIds && ev.originIds.length) {
+    return `出身限定：${ev.originIds.join(' / ')}`
+  }
+  if (ev.flavors && ev.flavors.length) {
+    const map: Record<string, string> = {
+      coastal: '沿海省',
+      north: '北方省',
+      northeast: '东北省',
+      central: '中原省',
+      southwest: '西南省',
+      northwest: '西北省',
+    }
+    return `省份气质：${ev.flavors.map((f) => map[f] ?? f).join(' / ')}`
+  }
+  if (ev.minRank != null && ev.minRank >= 15) return '省级及以上职级更易出现'
+  if (ev.minRank != null && ev.minRank >= 12) return '厅局级及以上职级更易出现'
+  if (ev.minRank != null && ev.minRank >= 6) return '县处级及以上职级更易出现'
+  if (ev.maxRank != null && ev.maxRank <= 5) return '乡镇–副镇阶段，升上去就难再抽到'
+  if (ev.minRisk != null) return `风险达到 ${ev.minRisk} 以上可能出现`
+  if (ev.monthMod && ev.monthMod.length) {
+    return `仅 ${ev.monthMod.join('、')} 月出现`
+  }
+  return '满足职级/条件后随机出现；多换出身与省份可提高命中'
+}

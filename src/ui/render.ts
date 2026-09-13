@@ -1,5 +1,5 @@
 import type { GameState, UiTab, DutyKind } from '../types'
-import { getEvent, getEventText } from '../data/events'
+import { getEvent, getEventText, eventUnlockHint } from '../data/events'
 import { getNpc, npcsVisibleAt } from '../data/npcs'
 import { ORIGINS } from '../data/origins'
 import { PROVINCES, getProvince, localizePlace, localizePostTitle } from '../data/provinces'
@@ -19,6 +19,7 @@ import { SLOT_COUNT, readSlot, cloudSyncState } from '../state/saves'
 import { availablePaths } from '../systems/promotion'
 import { goalCurrent, goalDone, goalTargetText } from '../systems/goals'
 import { factionName } from '../systems/faction'
+import { POLICY_DEFS, peekFactionTask } from '../systems/policy'
 import { bondRefs, isBond, PATRON_FAVOR } from '../systems/network'
 import { DUTY_META, getDutyItem } from '../data/duties'
 import { canStartDuty } from '../systems/duty'
@@ -215,6 +216,8 @@ export interface AppHandlers {
   onProjectChoice: (mode: 'public' | 'quiet') => void
   onJoinFaction: (target: string) => void
   onFactionAct: (kind: 'loyal' | 'low' | 'sabotage') => void
+  onFactionTask: (choice: 'accept' | 'decline') => void
+  onStartPolicy: (id: string) => void
   onResolveVote: (choice: 'yes' | 'no' | 'abstain') => void
   onResolveSecCase: (choice: 'jiege' | 'baoquan' | 'baogao') => void
   onShowFailLog: () => void
@@ -1070,6 +1073,29 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     <div class="fam-line">地方系 <b>${Math.round(fr.local ?? 0)}</b></div>
     <div class="fam-line">角力热度 <b>${Math.round(s.factionHeat ?? 0)}</b></div>
     ${s.factionCd > 0 ? `<div class="fam-line" style="color:var(--danger)">动作冷却 ${s.factionCd} 个月</div>` : ''}
+    ${(() => {
+      if (s.faction === 'none') return ''
+      if (s.factionTask) {
+        const left = s.factionTask.monthsLeft
+        return `<div class="fam-box" style="margin-top:8px;padding:8px;border:1px dashed var(--line)">
+          <div class="fam-line"><b>在办交办</b> ${s.factionTask.title}</div>
+          <p class="muted" style="font-size:11px;margin:4px 0">${s.factionTask.text}</p>
+          <div class="fam-line">剩余约 ${left} 个月 · 办成涨声望，办砸抬风险</div>
+        </div>`
+      }
+      const pending = peekFactionTask(s)
+      if (pending) {
+        return `<div class="fam-box" style="margin-top:8px;padding:8px;border:1px dashed var(--line)">
+          <div class="fam-line"><b>派系交办</b> ${pending.title}</div>
+          <p class="muted" style="font-size:11px;margin:4px 0">${pending.text}</p>
+          <div class="faction-acts">
+            <button class="btn btn-primary" data-ft="accept">接下（约 ${pending.months} 月）</button>
+            <button class="btn btn-ghost" data-ft="decline">婉拒</button>
+          </div>
+        </div>`
+      }
+      return ''
+    })()}
     <div class="faction-acts">
       <button class="btn btn-ghost" data-fa="joinA" ${s.faction === 'A' || s.factionCd > 0 ? 'disabled' : ''}>靠拢 A</button>
       <button class="btn btn-ghost" data-fa="joinB" ${s.faction === 'B' || s.factionCd > 0 ? 'disabled' : ''}>靠拢 B</button>
@@ -1079,7 +1105,7 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
       <button class="btn btn-ghost" data-fa="low" ${s.faction === 'none' || s.factionCd > 0 ? 'disabled' : ''}>低调</button>
       <button class="btn btn-ghost" data-fa="sabotage" ${s.faction === 'none' || s.factionCd > 0 ? 'disabled' : ''}>拆对家台</button>
     </div>
-    <p class="muted" style="font-size:11px;margin-top:6px">站队/转投有冷却与报复；拆台必遭反击；声望过低会被边缘化。会议角力里的表决也会影响声望。</p>
+    <p class="muted" style="font-size:11px;margin-top:6px">站队后可能收到「交办」。办成涨本系声望，但常伤廉洁、抬风险；婉拒则本系不满。</p>
   `
   facBox.querySelectorAll<HTMLButtonElement>('[data-fa]').forEach((btn) => {
     const k = btn.dataset.fa
@@ -1091,6 +1117,12 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
       else if (k === 'loyal') h.onFactionAct('loyal')
       else if (k === 'low') h.onFactionAct('low')
       else if (k === 'sabotage') h.onFactionAct('sabotage')
+    })
+  })
+  facBox.querySelectorAll<HTMLButtonElement>('[data-ft]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.ft === 'accept') h.onFactionTask('accept')
+      else h.onFactionTask('decline')
     })
   })
 
@@ -1219,6 +1251,36 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     wp.append(slotSel, wbtn)
   }
   projBox.append(wp)
+
+  // 政策试点
+  const pol = el('div', 'fam-box')
+  const rankNow = getPost(s.postId).rank
+  pol.append(panelHead('政策试点', s.policy ? '在办' : rankNow >= 6 ? '可启动' : '县处起'))
+  if (s.policy) {
+    const pct = Math.round((s.policy.step / s.policy.total) * 100)
+    pol.innerHTML += `
+      <div class="fam-line"><b>${s.policy.name}</b></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="fam-line">第 ${s.policy.step}/${s.policy.total} 月 · 质量 ${s.policy.quality}</div>
+    `
+  } else if (rankNow < 6) {
+    pol.innerHTML += `<p class="muted" style="font-size:12px;margin:0">县处级及以上可选定一条政策试点，数月后结项进考核叙事。</p>`
+  } else {
+    pol.innerHTML += `<p class="muted" style="font-size:12px;margin:0 0 6px">选一条线做 3–4 个月，结项质量看五维与风险。</p>`
+    const opts = POLICY_DEFS.filter((d) => rankNow >= d.minRank && rankNow <= d.maxRank).slice(0, 4)
+    const box = el('div', 'faction-acts')
+    for (const d of opts) {
+      const b = el('button', 'btn btn-ghost')
+      b.type = 'button'
+      b.textContent = d.name
+      b.disabled = !!s.currentEventId || s.actionPoints < 1
+      b.title = d.flavor
+      b.addEventListener('click', () => h.onStartPolicy(d.id))
+      box.append(b)
+    }
+    pol.append(box)
+  }
+  projBox.append(pol)
 
   // 调研
   const rs = el('div', 'fam-box')
@@ -2138,9 +2200,10 @@ function mountCatalog(root: HTMLElement, _s: GameState, h: AppHandlers) {
       .map((ev) => {
         const got = done.has(ev.id)
         const kind = ev.kind
+        const hint = got ? '已触发' : `未触发 · ${eventUnlockHint(ev)}`
         return `<div class="ach-row${got ? ' got' : ''}" data-kind="${kind}">
         <strong>${ev.title}</strong>
-        <span>${got ? '已触发' : '未触发'} · 【${kind}】· ${ev.originIds ? '出身限定' : ev.flavors ? '省份限定' : '通用'}</span>
+        <span>${hint} · 【${kind}】</span>
       </div>`
       })
       .join('')

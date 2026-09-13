@@ -400,6 +400,15 @@ export interface GameState {
     /** 地方主官专项条线：zhao 招大引强 / zhai 债务化解 / sheng 生态督察整改 */
     major?: 'zhao' | 'zhai' | 'sheng'
   } | null
+  /** 政策试点（县处及以上） */
+  policy?: { id: string; name: string; step: number; total: number; quality: number } | null
+  policyExcellent?: boolean
+  /** 派系交办任务 */
+  factionTask?: { id: string; title: string; text: string; monthsLeft: number; totalMonths: number } | null
+  /** 本月待接的派系任务 id */
+  pendingFactionTask?: string | null
+  /** 本局已办结过的派系任务 id（避免立刻重复） */
+  factionTaskDone?: string[]
   /** 子女升学/就业进度 */
   childPath?: 'none' | 'zhongkao' | 'gaokao' | 'jiuye' | 'done'
   /** 回忆录页数 */
