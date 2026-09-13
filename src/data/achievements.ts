@@ -128,6 +128,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       s.paths.includes('zhengfa'),
   },
   {
+    id: 'jiancha_xian',
+    name: '公诉人',
+    desc: '进入检察条线',
+    check: (s) => getPost(s.postId).title.includes('检察') || s.paths.includes('jiancha'),
+  },
+  {
     id: 'buwei_jing',
     name: '进京',
     desc: '进入国务院部委或中央机关',
