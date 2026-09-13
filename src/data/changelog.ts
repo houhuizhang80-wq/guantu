@@ -19,6 +19,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13u',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '军地交流事件（厅局以上）：国防动员联席会、部队过境驻训、部队代职邀请、征兵宣传、军民融合项目——军委主席仍为登顶分岗，不另开军队晋升树。' },
+    ],
+  },
+  {
     ver: '2026.09.13t',
     date: '今天',
     items: [
