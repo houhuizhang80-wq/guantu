@@ -265,15 +265,20 @@ export const ENDINGS: Ending[] = [
     title: '本乡好名声',
     summary: '你没离开本乡太久，也没把乡亲的事办砸。门卫仍喊你乳名，你回头笑了笑。',
     priority: 29,
-    check: (s) =>
-      s.flags.originName === '本乡本土' &&
-      // 须年过而立仍扎根乡镇且未交流，避免与最低任职年龄赛跑
-      s.turn >= 108 &&
-      s.age >= 34 &&
-      s.attrs.MX >= 65 &&
-      rank(s) <= 4 &&
-      s.flags.jiaoliu !== true &&
-      s.risk < 40,
+    check: (s) => {
+      if (s.flags.originName !== '本乡本土') return false
+      // 须年过而立仍扎根乡镇且未交流；但只要还有可走的去向（含职级→副镇长）
+      // 或本岗任期未满，就不该被「好名声」提前收档——否则职级并行线会被截断。
+      if (s.turn < 120) return false
+      if (s.age < 38) return false
+      if (s.attrs.MX < 65) return false
+      if (rank(s) > 4) return false
+      if (s.flags.jiaoliu === true) return false
+      if (s.risk >= 40) return false
+      if (availablePaths(s).some((p) => p.ok)) return false
+      if (!stuckLong(s) && canStayClimb(s)) return false
+      return true
+    },
   },
   {
     id: 'jiafeng',

@@ -508,6 +508,19 @@ export function monthlyDrift(s: GameState) {
     if (!s.paths.includes('jiaoliu')) s.paths.push('jiaoliu')
     pushLog(s, '【交流】组织安排你跨单位交流任职，成长地回避限制解除。')
   }
+  // 走职级并行、长期未挂乡镇领导职务的本乡干部：满 18 个月后同样安排交流，
+  // 避免「一直职级晋升、永远拿不到 jiaoliu」被专属结局误收档
+  if (
+    s.flags.hometown === 'qingshi' &&
+    s.flags.jiaoliu !== true &&
+    s.probationLeft <= 0 &&
+    ((s.flags.monthsInPost as number) ?? 0) >= 18 &&
+    (post.rank >= 3 || s.turn >= 60)
+  ) {
+    s.flags.jiaoliu = true
+    if (!s.paths.includes('jiaoliu')) s.paths.push('jiaoliu')
+    pushLog(s, '【交流】组织安排你跨单位交流任职，成长地回避限制解除。')
+  }
 }
 
 export { STAGES }

@@ -19,6 +19,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13f',
+    date: '今天',
+    items: [
+      { kind: '修复', text: '本乡出身：走职级并行时也会安排跨单位交流，不再因拿不到交流标记被「本乡好名声」提前收档；该结局改为 38 岁且确认无路可走才触发。' },
+      { kind: '优化', text: '高层晋升的草率分门槛略放宽，减少「认真玩也莫名卡住」的挫败感；同行动重复的草率分积累变慢。' },
+    ],
+  },
+  {
     ver: '2026.09.13e',
     date: '今天',
     items: [

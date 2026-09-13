@@ -30,11 +30,11 @@ export function noteAction(s: GameState, key: string): { decay: boolean } {
     return { decay: false }
   }
   if (s.lastActionKey === key) {
-    s.mashScore = clamp((s.mashScore ?? 0) + 8, 0, 100)
+    s.mashScore = clamp((s.mashScore ?? 0) + 5, 0, 100)
     return { decay: true }
   }
   s.lastActionKey = key
-  s.mashScore = clamp((s.mashScore ?? 0) - 1, 0, 100)
+  s.mashScore = clamp((s.mashScore ?? 0) - 2, 0, 100)
   return { decay: false }
 }
 
@@ -48,7 +48,7 @@ export function engagementGate(s: GameState, minRank: number): { ok: boolean; re
       ok: false,
       reason: `本岗位经手事件不足（需至少 ${need} 件，现 ${handled}）——组织要看实绩过程`,
     }
-  const mashLimit = minRank >= 18 ? 16 : minRank >= 15 ? 25 : minRank >= 12 ? 40 : 55
+  const mashLimit = minRank >= 18 ? 28 : minRank >= 15 ? 36 : minRank >= 12 ? 48 : 60
   if ((s.mashScore ?? 0) >= mashLimit)
     return {
       ok: false,
