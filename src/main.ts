@@ -16,7 +16,7 @@ import {
 import { readSlot, clearSlot, exportSave, importSave } from './state/saves'
 import { familyTick, familyApply } from './systems/family'
 import { networkTick, firstTimeHint, pickNetworkNpc, maybeIntroduceNewNpc, syncBonds, maybeBondEvent, writeBondLetter, requestPatron, bondLetterTick } from './systems/network'
-import { startDuty, chooseDuty, dismissDuty } from './systems/duty'
+import { startDuty, chooseDuty, dismissDuty, canStartDuty } from './systems/duty'
 import {
   yuqingTick,
   doYuqing,
@@ -849,6 +849,12 @@ function draw() {
         draw()
         return
       }
+      const gate = canStartDuty(state, kind)
+      if (!gate.ok) {
+        state.lastFeedback = { title: '还不能办差', text: gate.reason }
+        draw()
+        return
+      }
       startDuty(state, kind)
       saveGame(state)
       draw()
@@ -902,6 +908,10 @@ function draw() {
     },
     onRosterTag: (npcId: string, tag: string) => {
       setRosterTag(state, npcId, tag)
+      state.lastFeedback = {
+        title: '干部名册',
+        text: tag ? `已标注为「${tag}」，年底推荐时会优先看到。` : '已清除该干部标注。',
+      }
       saveGame(state)
       draw()
     },
@@ -916,11 +926,6 @@ function draw() {
       const r = resolveVisit(state, accept)
       focusBonus(state, 'visit')
       state.lastFeedback = { title: '关系往来', text: r.text }
-      saveGame(state)
-      draw()
-    },
-    onSetFocus: (id) => {
-      state.focus = id
       saveGame(state)
       draw()
     },
@@ -953,11 +958,20 @@ function draw() {
     onFactionTask: (choice) => {
       const pending = peekFactionTask(state)
       if (!pending) {
+        state.lastFeedback = { title: '派系交办', text: '当前没有待处理的交办。' }
         draw()
         return
       }
       const r = choice === 'accept' ? acceptFactionTask(state, pending) : declineFactionTask(state, pending)
       state.lastFeedback = { title: '派系交办', text: r.text }
+      saveGame(state)
+      draw()
+    },
+    onSetFocus: (id) => {
+      state.focus = id
+      const label =
+        id === 'zj' ? '政绩' : id === 'mx' ? '民心' : id === 'lian' ? '廉洁' : id === 'gx' ? '关系' : '分散'
+      state.lastFeedback = { title: '月度焦点', text: id ? `本月侧重「${label}」，相关行动与事件会小幅加成。` : '已取消月度焦点。' }
       saveGame(state)
       draw()
     },
@@ -1008,6 +1022,11 @@ function draw() {
       draw()
     },
     onChoose: (index) => {
+      if (!state.currentEventId) {
+        state.lastFeedback = { title: '没有待处置事件', text: '请先点「进入下个月」或处理其它面板。' }
+        draw()
+        return
+      }
       playClickSound()
       resolveChoice(index)
     },
@@ -1213,7 +1232,9 @@ function draw() {
       draw()
     },
     onRestart: () => {
-      clearSave()
+      const slot = state.slot ?? 0
+      if (!confirm(`确定删除槽位 ${slot + 1} 的本局存档并回到标题？此操作不可恢复。`)) return
+      clearSave(slot)
       state = bootTitle()
       draw()
     },
@@ -1262,10 +1283,23 @@ function pullEvent() {
 }
 
 function resolveChoice(index: number) {
-  if (!state.currentEventId) return
+  if (!state.currentEventId) {
+    state.lastFeedback = { title: '没有待处置事件', text: '请先点「进入下个月」。' }
+    draw()
+    return
+  }
   const ev = getEvent(state.currentEventId)
   const choice = ev.choices[index]
-  if (!choice || !meetsRequire(state, choice.require)) return
+  if (!choice) {
+    state.lastFeedback = { title: '无效选项', text: '该选项不存在，请重试。' }
+    draw()
+    return
+  }
+  if (!meetsRequire(state, choice.require)) {
+    state.lastFeedback = { title: '条件不足', text: '当前状态还不能选这一项。' }
+    draw()
+    return
+  }
 
   noteChoice(state, index)
 
@@ -1350,7 +1384,18 @@ function openAction(id: ActionId) {
 function resolveActionVariant(actionId: ActionId, variantId: string) {
   const a = getAction(actionId)
   const v = a.variants.find((x) => x.id === variantId)
-  if (!v || !canDoAction(state, a).ok) return
+  if (!v) {
+    state.lastFeedback = { title: '无法行动', text: '未找到该行动选项。' }
+    draw()
+    return
+  }
+  const gate = canDoAction(state, a)
+  if (!gate.ok) {
+    state.lastFeedback = { title: '无法行动', text: gate.reason }
+    state.pendingActionId = null
+    draw()
+    return
+  }
 
   const actNote = noteAction(state, `${actionId}/${variantId}`)
 

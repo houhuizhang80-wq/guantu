@@ -229,6 +229,7 @@ export function maybeOfferFactionTask(s: GameState): FactionTaskDef | null {
   const list = fresh.length ? fresh : FACTION_TASKS
   const pick = list[Math.floor(Math.random() * list.length)]
   s.pendingFactionTask = pick.id
+  pushLog(s, `【派系】${factionName(s.faction)}有事要你办：「${pick.title}」。到派系页查看并决定接否。`)
   return pick
 }
 
