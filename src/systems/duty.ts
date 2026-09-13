@@ -10,7 +10,19 @@ import {
   QICAO_POOL,
   XINFANG_POOL,
   PEIXUN_DAYS,
+  JIJIAN_PISHI_POOL,
+  JIJIAN_XINFANG_POOL,
 } from '../data/duties'
+
+function onJijianTrack(s: GameState): boolean {
+  const title = getPost(s.postId).title
+  return (
+    title.includes('纪委') ||
+    title.includes('监委') ||
+    title.includes('巡视') ||
+    (s.paths ?? []).includes('jijian')
+  )
+}
 
 export function dutyCost(kind: DutyKind): number {
   return DUTY_META.find((d) => d.kind === kind)?.cost ?? 1
@@ -52,7 +64,8 @@ export function startDuty(s: GameState, kind: DutyKind): DutyRun {
   s.actionPoints -= cost
   let run: DutyRun
   if (kind === 'pishi') {
-    const queue = pickFromPool(PISHI_POOL, rank, 4)
+    const pool = onJijianTrack(s) && JIJIAN_PISHI_POOL.length ? [...JIJIAN_PISHI_POOL, ...PISHI_POOL] : PISHI_POOL
+    const queue = pickFromPool(pool, rank, 4)
     run = {
       kind,
       itemId: queue[0],
@@ -63,9 +76,13 @@ export function startDuty(s: GameState, kind: DutyKind): DutyRun {
       done: false,
     }
   } else if (kind === 'xinfang') {
-    const ids = pickFromPool(XINFANG_POOL, rank, 1)
+    const xfPool =
+      onJijianTrack(s) && JIJIAN_XINFANG_POOL.length
+        ? [...JIJIAN_XINFANG_POOL, ...XINFANG_POOL]
+        : XINFANG_POOL
+    const ids = pickFromPool(xfPool, rank, 1)
     // 取有 next 链的主案例
-    const start = XINFANG_POOL.find((x) => x.id === ids[0] && x.next) || XINFANG_POOL[0]
+    const start = xfPool.find((x) => x.id === ids[0] && x.next) || xfPool[0]
     run = {
       kind,
       itemId: start.id,

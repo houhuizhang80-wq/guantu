@@ -19,6 +19,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13q',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '纪检/巡视条线专属事件 10 条（初核谈话室、账本对不上、来说情的、室务会定性、巡视进驻、处分宣布、家属被打招呼、以案促改、高层打招呼等）。' },
+      { kind: '新增', text: '纪检条线专属公务：处分请示、线索处置、以案促改批示，以及实名/重复举报接访——在纪委/监委/巡视岗位时优先进入批示台与信访接待。' },
+    ],
+  },
+  {
     ver: '2026.09.13p',
     date: '今天',
     items: [

@@ -20,6 +20,15 @@ function eligible(s: GameState, e: GameEvent): boolean {
     const f = getProvince(s.provinceId).flavor
     if (!e.flavors.includes(f)) return false
   }
+  if (e.pathTag === 'jijian') {
+    const title = getPost(s.postId).title
+    const onTrack =
+      title.includes('纪委') ||
+      title.includes('监委') ||
+      title.includes('巡视') ||
+      (s.paths ?? []).includes('jijian')
+    if (!onTrack) return false
+  }
   const rank = getPost(s.postId).rank
   if (typeof e.minRank === 'number' && rank < e.minRank) return false
   if (typeof e.maxRank === 'number' && rank > e.maxRank) return false

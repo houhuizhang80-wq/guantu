@@ -1114,6 +1114,177 @@ export const PEIXUN_DAYS: DutyItem[] = [
   },
 ]
 
+/** 纪检条线专属批示/办案来文（在纪委/监委/巡视岗时优先进池） */
+export const JIJIAN_PISHI_POOL: DutyItem[] = [
+  {
+    id: 'jj_ps_chujue',
+    kind: 'pishi',
+    title: '关于给予某科级干部党内警告处分的请示',
+    text: '审理室报来处分档次建议：警告。事实清楚，但本人在民主生活会上哭了一场，有人说「是不是太重」。',
+    choices: [
+      {
+        id: 'zhun',
+        label: '批：按审理意见执行，做好宣布与教育',
+        hint: '纪严于法',
+        score: 14,
+        fx: { Lian: 5, ZJ: 3, NL: 2 },
+        note: '处分落地，规矩立住。',
+      },
+      {
+        id: 'yi',
+        label: '批：再核一处细节，暂缓宣布',
+        hint: '更稳，可能拖',
+        score: 9,
+        fx: { NL: 3, Lian: 2 },
+        note: '卷宗又翻了一遍。',
+      },
+      {
+        id: 'qing',
+        label: '批：考虑一贯表现，建议从轻',
+        hint: '人情味，有风险',
+        score: 3,
+        fx: { GX: 3, Lian: -5 },
+        riskDelta: 5,
+        note: '有人觉得你「会做人」。',
+      },
+    ],
+  },
+  {
+    id: 'jj_ps_xiansuo',
+    kind: 'pishi',
+    title: '关于对反映某领导干部问题线索处置的报告',
+    text: '线索涉及项目招投标。初核组建议谈话函询；有人暗示「动静太大不好」。',
+    choices: [
+      {
+        id: 'han',
+        label: '批：按程序谈话函询，限期书面说明',
+        hint: '规范',
+        score: 13,
+        fx: { Lian: 4, NL: 4, ZJ: 3 },
+        note: '程序走得正。',
+      },
+      {
+        id: 'chu',
+        label: '批：转初核，固定书证',
+        hint: '较硬，耗时',
+        score: 12,
+        fx: { NL: 5, ZJ: 3, Lian: 2 },
+        riskDelta: 2,
+        note: '审查组开始调材料。',
+      },
+      {
+        id: 'cun',
+        label: '批：暂存，待时机成熟再议',
+        hint: '回避矛盾',
+        score: 2,
+        fx: { Lian: -4, Risk: 6 },
+        note: '线索躺在抽屉里。',
+      },
+    ],
+  },
+  {
+    id: 'jj_ps_yisuo',
+    kind: 'pishi',
+    title: '关于督促案发单位开展以案促改的函',
+    text: '案件已审结。案发单位整改方案写得很「漂亮」，问题清单却像在写别人。',
+    choices: [
+      {
+        id: 'tui',
+        label: '批：打回重写，问题对号入座',
+        hint: '较真',
+        score: 14,
+        fx: { ZJ: 4, NL: 3, Lian: 3, MX: 2 },
+        note: '对方脸红了，材料扎实了。',
+      },
+      {
+        id: 'ding',
+        label: '批：约谈主要负责人，压实责任',
+        hint: '抓关键少数',
+        score: 12,
+        fx: { ZJ: 4, GX: -2, Lian: 3 },
+        note: '约谈室坐了一小时。',
+      },
+      {
+        id: 'guo',
+        label: '批：原则同意，注意举一反三',
+        hint: '过得去',
+        score: 5,
+        fx: { ZJ: 1 },
+        riskDelta: 2,
+        note: '函发出去了，像石头丢进河。',
+      },
+    ],
+  },
+]
+
+export const JIJIAN_XINFANG_POOL: DutyItem[] = [
+  {
+    id: 'jj_xf_1',
+    kind: 'xinfang',
+    title: '实名举报：村干部优亲厚友',
+    text: '举报人带着复印件，手指发抖。他说：「我不怕，我孙子还要在村里上学。」',
+    choices: [
+      {
+        id: 'shou',
+        label: '当面登记受理，承诺保护举报人',
+        hint: '稳住人心',
+        score: 14,
+        fx: { MX: 5, Lian: 4, NL: 3 },
+        note: '笔录做得很细。',
+      },
+      {
+        id: 'zhuan',
+        label: '转乡镇纪委核查，你督办',
+        hint: '压实基层',
+        score: 11,
+        fx: { ZJ: 3, NL: 3, MX: 2 },
+        note: '督办单发了出去。',
+      },
+      {
+        id: 'quan',
+        label: '劝其先回去等消息',
+        hint: '冷处理',
+        score: 3,
+        fx: { MX: -4, Risk: 4 },
+        note: '他在门口站了一会儿才走。',
+      },
+    ],
+  },
+  {
+    id: 'jj_xf_2',
+    kind: 'xinfang',
+    title: '重复举报：三年前的旧账',
+    text: '同一事项第三次进京信。卷宗很厚，结论也很硬。举报人说：「你们官官相护。」',
+    choices: [
+      {
+        id: 'fu',
+        label: '当面复核答复，出示依据与程序',
+        hint: '以理服人',
+        score: 13,
+        fx: { Lian: 4, NL: 4, MX: 3 },
+        note: '他把答复单看了很久。',
+      },
+      {
+        id: 'ting',
+        label: '联合听证，邀请第三方列席',
+        hint: '更硬的程序',
+        score: 12,
+        fx: { NL: 5, Lian: 3, ZJ: 2 },
+        note: '听证室灯亮到很晚。',
+      },
+      {
+        id: 'ya',
+        label: '要求属地「稳控」',
+        hint: '维稳思维，后患大',
+        score: 2,
+        fx: { ZJ: 1, MX: -5, Lian: -4 },
+        riskDelta: 6,
+        note: '电话那头松了口气，你没有。',
+      },
+    ],
+  },
+]
+
 export function getDutyItem(id: string): DutyItem | null {
   return (
     PISHI_POOL.find((x) => x.id === id) ||
@@ -1121,6 +1292,8 @@ export function getDutyItem(id: string): DutyItem | null {
     QICAO_POOL.find((x) => x.id === id) ||
     HUIYI_POOL.find((x) => x.id === id) ||
     PEIXUN_DAYS.find((x) => x.id === id) ||
+    JIJIAN_PISHI_POOL.find((x) => x.id === id) ||
+    JIJIAN_XINFANG_POOL.find((x) => x.id === id) ||
     null
   )
 }
