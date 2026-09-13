@@ -1545,18 +1545,23 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
 
   // 中：事件
   const center = el('section', 'panel event-panel')
+  const knownCatalog = loadCatalog()
   if (s.currentEventId) {
     const ev = getEvent(s.currentEventId)
     const kind = KIND_LABEL[ev.kind] ?? '日常'
+    const hits = s.eventHits?.[ev.id] ?? 1
+    const seen = knownCatalog.includes(ev.id)
+    const newTag = !seen ? `<span class="tag tag-calm">图鉴新条目</span>` : ''
     center.innerHTML = `
       <div class="event-head">
         <span class="tag tag-${ev.kind}">${kind}</span>
+        ${newTag}
         <span class="event-no">${prov.places.town}纪要 · ${String(s.turn + 1).padStart(3, '0')}</span>
         <span class="muted">${dateLabel(s)}</span>
       </div>
       <div class="event-paper">
         <h2 class="event-title">${L(ev.title)}</h2>
-        <p class="event-text">${L(getEventText(ev, s.originId, s.eventHits?.[ev.id] ?? 1))}</p>
+        <p class="event-text">${L(getEventText(ev, s.originId, hits))}</p>
       </div>
     `
     const choices = el('div', 'choices')

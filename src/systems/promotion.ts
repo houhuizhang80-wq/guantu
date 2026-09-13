@@ -452,7 +452,7 @@ export function confirmAppointment(s: GameState): boolean {
   }
   // 试用期
   // 试用期：低职级较短，高层仍一年
-  const prob = target.probationMonths ?? (target.leader ? (target.rank >= 12 ? 12 : target.rank >= 8 ? 9 : 6) : 0)
+  const prob = target.probationMonths ?? (target.leader ? (target.rank >= 12 ? 9 : target.rank >= 8 ? 6 : 4) : 0)
   s.probationLeft = prob
   pushLog(s, `任免：${localizePlace(from.title, s.provinceId)} → ${localizePlace(target.title, s.provinceId)}${prob ? `（试用期 ${prob} 个月）` : ''}`)
   s.promo = null
@@ -524,3 +524,35 @@ export function monthlyDrift(s: GameState) {
 }
 
 export { STAGES }
+
+/** 选拔失败复盘：按失败文案给出可执行下一步 */
+export function promoFailReview(s: GameState, failed: string): string {
+  const a = s.attrs
+  const lines: string[] = []
+  if (failed.includes('立案') || failed.includes('处分') || failed.includes('中止')) {
+    lines.push('先处理纪检监察/处分影响期，期间不能启动新的选拔。')
+  }
+  if (failed.includes('推荐') || failed.includes('票数')) {
+    lines.push(`民主推荐看关系与口碑：关系 ${a.GX}、民心 ${a.MX}。可先托人/下沉攒好感，或选「走访谈话」策略。`)
+  }
+  if (failed.includes('考察') || failed.includes('廉洁') || failed.includes('风险')) {
+    lines.push(`组织考察卡廉洁与风险：廉洁 ${a.Lian}、风险 ${Math.round(s.risk)}。优先「如实报告」，并先降风险。`)
+  }
+  if (failed.includes('公示')) {
+    lines.push('公示期被反映：说明风险或历史问题偏高。先自查台账、压风险，再启动选拔。')
+  }
+  if (failed.includes('票决') || failed.includes('会议')) {
+    lines.push(`党委票决看综合盘：关系 ${a.GX}、政绩 ${a.ZJ}、廉洁 ${a.Lian}。届中更难——本岗再干满一届会好过些；可选「会前充分汇报」。`)
+  }
+  if (failed.includes('草率')) {
+    lines.push(`草率分偏高（当前 ${s.mashScore ?? 0}）：认真轮换选项、少快进，几回事件后会降。`)
+  }
+  if (failed.includes('经手事件')) {
+    lines.push(`本岗经手事件还不够（${s.eventsHandledThisPost ?? 0} 件）：多处置本月事件，别只点快进。`)
+  }
+  if (lines.length === 0) {
+    lines.push('可先稳住五维与风险，换一档策略后过几个月再试。')
+  }
+  lines.push('失败已记入档案，可在设置导出备份。')
+  return lines.join('\n')
+}

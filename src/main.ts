@@ -61,7 +61,7 @@ import { markEventUsed, meetsRequire, scheduleNextEvent } from './systems/events
 import { playStampSound } from './ui/audio'
 import { maybeInvestigation, riskTick } from './systems/risk'
 import { advanceJijian } from './systems/jijian'
-import { monthlyDrift, startPromo, advancePromo, confirmAppointment, cancelPromo, availablePaths, canStartPromo } from './systems/promotion'
+import { monthlyDrift, startPromo, advancePromo, confirmAppointment, cancelPromo, availablePaths, canStartPromo, promoFailReview } from './systems/promotion'
 import { checkEnding } from './systems/ending'
 import {
   type ActionId,
@@ -1125,8 +1125,8 @@ function draw() {
       if (r.failed) {
         recordPromoFail(state, r.failed)
         state.lastFeedback = {
-          title: '选拔未通过',
-          text: `${r.failed}\n复盘：提高相关五维或降低风险；换策略；减少草率分。失败记录可在设置导出备份。`,
+          title: '选拔未通过 · 复盘',
+          text: promoFailReview(state, r.failed),
         }
         state.flags.lastPromoFail = r.failed
         saveGame(state)

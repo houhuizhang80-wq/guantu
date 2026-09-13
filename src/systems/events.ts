@@ -65,6 +65,18 @@ export function scheduleNextEvent(s: GameState): GameEvent | null {
     return mains[0]
   }
 
+  // 专项链后续：上一环刚过就优先接上，保证 3 个月连续剧情
+  const chainNext = EVENTS.filter(
+    (e) =>
+      e.onlyOnce &&
+      e.require?.afterEvent &&
+      s.usedEvents.includes(e.require.afterEvent) &&
+      eligible(s, e),
+  )
+  if (chainNext.length > 0 && Math.random() < 0.85) {
+    return chainNext[0]
+  }
+
   if (s.risk >= 30 && s.turn > 3) {
     const crises = EVENTS.filter((e) => e.kind === 'crisis' && eligible(s, e))
     if (crises.length > 0 && Math.random() < Math.min(0.55, 0.15 + s.risk / 180)) {

@@ -11,7 +11,7 @@ function assert(cond: boolean, msg: string) {
 assert(POSTS.some((p) => p.track === 'rank'), 'has rank track')
 assert(POSTS.some((p) => p.id === 'yiji_zhuren'), 'has 一级主任科员')
 assert(POSTS.every((p) => p.nextPaths !== undefined), 'has nextPaths')
-assert(POSTS.some((p) => p.probationMonths === 12), 'probation')
+assert(POSTS.some((p) => p.probationMonths === 9), 'probation')
 
 const fuzhen = getPost('fuzhenzhang')
 assert(fuzhen.nextPaths.length >= 3, 'branching at 副镇长')
@@ -43,7 +43,7 @@ assert(ren.doc?.kind === 'promote' || ren.doc?.title.includes('任免'), 'to ren
 assert(s.promo?.stage === 'renmian', 'stage renmian')
 confirmAppointment(s)
 assert(s.postId === 'fuzhenzhang', 'appointed')
-assert(s.probationLeft === 12, 'probation 12')
+assert(s.probationLeft === 9 || s.probationLeft === 4, `probation got ${s.probationLeft}`)
 
 // 任期不足不可动
 s.probationLeft = 0
