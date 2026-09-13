@@ -19,6 +19,24 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13c',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '标题页、设置与离线页均可打开玩家交流群（QQ 1107570877）。' },
+      { kind: '优化', text: '离线打开时不再展示失效的旧云入口，直接进入本机离线游玩；账号相关文案统一为「云端服务」。' },
+      { kind: '优化', text: '玩家交流 QQ 群写入用户协议与帮助。' },
+    ],
+  },
+  {
+    ver: '2026.09.13b',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '存档槽位从 3 个扩到 6 个，多开几局生涯不用再删档。' },
+      { kind: '优化', text: '导出备份改为 AES-GCM 加密（GUANTU2），文件不再是明文 JSON；导入需输入导出密码。旧版明文与旧混淆文件仍可导入。' },
+      { kind: '优化', text: '加密包一并带上图鉴 / 出身通关，导入后自动合并，不再另附明文图鉴 JSON。' },
+    ],
+  },
+  {
     ver: '2026.09.13',
     date: '今天',
     items: [

@@ -51,7 +51,7 @@ import {
   authUser,
   getLastEmail,
 } from '../state/auth'
-import { isReleaseOrigin, RELEASE_HOST } from '../state/cloud'
+import { isReleaseOrigin } from '../state/cloud'
 import { checkNickname, NICK_MAX, NICK_MIN } from '../data/banned_words'
 import { loadSyncedAchievements } from '../state/progress'
 import {
@@ -433,25 +433,27 @@ function renderAuth(root: HTMLElement, s: GameState, h: AppHandlers) {
   if (!isReleaseOrigin()) {
     card.innerHTML = `
       <div class="paper-tab">本机离线运行</div>
-      <h2 class="screen-title">当前不是正式站点</h2>
-      <p class="auth-lead">账号登录与云端存档只在正式发布域名下可用。</p>
+      <h2 class="screen-title">离线可玩</h2>
+      <p class="auth-lead">当前环境无法使用云端账号，生涯存档会保存在这台设备的浏览器里。</p>
       <dl class="auth-meta">
-        <div><dt>正式入口</dt><dd>${esc(RELEASE_HOST)}</dd></div>
-        <div><dt>账号登录</dt><dd>需在正式站点使用</dd></div>
         <div><dt>存档位置</dt><dd>仅本机浏览器</dd></div>
+        <div><dt>存档槽位</dt><dd>${SLOT_COUNT} 个</dd></div>
+        <div><dt>导出备份</dt><dd>AES-GCM 加密 .guantu</dd></div>
       </dl>
-      <p class="auth-note">你现在是通过本地文件或本地地址打开本作，这个环境拿不到账号身份，存档只写在这台设备的浏览器里，清空站点数据会一并丢失。要用云账号，请访问上面的正式入口。</p>
+      <p class="auth-note">清空浏览器站点数据会丢失本机存档。重要进度请在设置中导出加密备份。玩家交流 QQ 群：<strong>1107570877</strong>。</p>
       <div class="auth-actions">
-        <button class="btn" data-act="offline" type="button">以本机离线模式继续</button>
+        <button class="btn btn-primary" data-act="offline" type="button">进入游戏（离线）</button>
       </div>
       <div class="auth-foot">
         <button class="btn btn-ghost" data-act="changelog" type="button">更新日志</button>
+        <button class="btn btn-ghost" data-act="qq" type="button">玩家交流群</button>
       </div>
     `
     card.querySelector('[data-act="offline"]')?.addEventListener('click', h.onAuthSkip)
     card
       .querySelector('[data-act="changelog"]')
       ?.addEventListener('click', () => mountChangelog(root))
+    card.querySelector('[data-act="qq"]')?.addEventListener('click', () => mountQqGroup(root))
     return
   }
 
@@ -543,7 +545,7 @@ function renderAuth(root: HTMLElement, s: GameState, h: AppHandlers) {
       </dl>
       ${body}
       ${s.lastFeedback ? alertHtml(s.lastFeedback.text) : ''}
-      <p class="auth-note">账号信息与生涯存档保存在 WorkBuddy 云服务，换设备用同一邮箱登录即可继续。本机保留一份离线缓存：断网也能玩，恢复网络后自动同步。</p>
+      <p class="auth-note">账号信息与生涯存档保存在云端服务，换设备用同一邮箱登录即可继续。本机保留一份离线缓存：断网也能玩，恢复网络后自动同步。玩家交流 QQ 群：1107570877。</p>
     `
     wireEye()
     wireGoto()
@@ -829,7 +831,7 @@ function renderSlots(root: HTMLElement, h: AppHandlers) {
 
 function renderTitle(root: HTMLElement, s: GameState, h: AppHandlers) {
   const nick = authUser() ? authNickname() : '本机离线运行'
-  const slots = [0, 1, 2].map((i) => readSlot(i)).filter(Boolean)
+  const slots = Array.from({ length: SLOT_COUNT }, (_, i) => readSlot(i)).filter(Boolean)
   const latest = slots.sort((a, b) => (b?.turn ?? 0) - (a?.turn ?? 0))[0]
   // 提示语按最近存档所处职务层次筛选 —— 标题页 state 本身停在开局岗位
   const tipRank = latest ? getPost(latest.postId).rank : 0
@@ -876,6 +878,7 @@ function renderTitle(root: HTMLElement, s: GameState, h: AppHandlers) {
         <button class="btn btn-ghost" data-act="agree">协议须知</button>
         <button class="btn btn-ghost" data-act="auth">账号</button>
         <button class="btn btn-ghost" data-act="settings">设置</button>
+        <button class="btn btn-ghost" data-act="qq">交流群</button>
       </div>
     </div>
   `
@@ -887,6 +890,7 @@ function renderTitle(root: HTMLElement, s: GameState, h: AppHandlers) {
   wrap.querySelector('[data-act="agree"]')!.addEventListener('click', h.onOpenAgreement)
   wrap.querySelector('[data-act="auth"]')!.addEventListener('click', h.onOpenAuth)
   wrap.querySelector('[data-act="settings"]')!.addEventListener('click', h.onOpenSettings)
+  wrap.querySelector('[data-act="qq"]')?.addEventListener('click', () => mountQqGroup(root))
 }
 
 function renderOrigin(root: HTMLElement, h: AppHandlers) {
@@ -2231,14 +2235,15 @@ function mountSettings(root: HTMLElement, s: GameState, h: AppHandlers) {
         </label>
         <button class="btn btn-block" data-act="catalog">事件图鉴 ${catalogCount()}/${EVENTS.length}</button>
         <button class="btn btn-block" data-act="theme">切换深浅主题</button>
-        <button class="btn btn-block" data-act="export">导出存档备份（JSON）</button>
-        <label class="set-import">导入备份到当前槽位（.guantu 或旧版 JSON）
+        <button class="btn btn-block" data-act="export">导出加密存档（.guantu）</button>
+        <label class="set-import">导入备份到当前槽位（.guantu / 旧版）
           <input type="file" accept=".guantu,.json,application/json,text/plain" id="imp-file" />
         </label>
+        <button class="btn btn-block" data-act="qq">玩家交流群（QQ 1107570877）</button>
         <button class="btn btn-block" data-act="tl">查看履历</button>
         <button class="btn btn-ghost btn-block" data-act="title">回到标题</button>
       </div>
-      <p class="muted" style="margin-top:10px;font-size:12px">存档在你每次操作后自动写入${authUser() ? '云账号' : '这台设备的浏览器'}，不需要手动保存。局域网或断网时会暂存本机，恢复后自动补传。导出备份只是额外保险，可用于换账号时迁移。</p>
+      <p class="muted" style="margin-top:10px;font-size:12px">存档在你每次操作后自动写入${authUser() ? '云账号' : '这台设备的浏览器'}，不需要手动保存。局域网或断网时会暂存本机，恢复后自动补传。导出为 AES-GCM 加密备份（非明文），导入时需输入导出密码；旧版明文 / 旧混淆文件仍可导入。</p>
     </div>
   `
   root.append(overlay)
@@ -2251,6 +2256,7 @@ function mountSettings(root: HTMLElement, s: GameState, h: AppHandlers) {
     mountChangelog(root),
   )
   overlay.querySelector('[data-act="export"]')!.addEventListener('click', h.onExportSave)
+  overlay.querySelector('[data-act="qq"]')?.addEventListener('click', () => mountQqGroup(root))
   overlay.querySelector('[data-act="mute"]')?.addEventListener('click', h.onToggleMute)
   overlay.querySelector('[data-act="catalog"]')?.addEventListener('click', h.onToggleCatalog)
   overlay.querySelector('[data-act="theme"]')?.addEventListener('click', h.onToggleTheme)
@@ -2269,9 +2275,87 @@ function mountSettings(root: HTMLElement, s: GameState, h: AppHandlers) {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => h.onImportSave(String(reader.result || ''))
+    reader.onload = () => {
+      h.onImportSave(String(reader.result || ''))
+      ;(e.target as HTMLInputElement).value = ''
+    }
     reader.readAsText(file)
   })
+}
+
+/** 导出/导入加密存档时的密码弹层 */
+export function promptSavePassword(opts: {
+  title: string
+  confirmMode?: boolean
+  onSubmit: (password: string) => void
+  onCancel?: () => void
+}): void {
+  const overlay = el('div', 'npc-overlay show')
+  overlay.innerHTML = `
+    <div class="npc-modal" role="dialog" aria-modal="true">
+      <div class="npc-modal-head">
+        <div>
+          <div class="npc-modal-name">${opts.title}</div>
+          <div class="npc-modal-role">AES-GCM 加密，文件不是明文</div>
+        </div>
+        <button class="btn btn-primary" type="button" data-act="close">取消</button>
+      </div>
+      <div class="set-list">
+        <label class="set-import">密码（至少 4 位）
+          <input type="password" id="spw1" autocomplete="new-password" maxlength="64" placeholder="导出/导入都需要这串密码" />
+        </label>
+        ${opts.confirmMode ? `
+        <label class="set-import">再输入一次
+          <input type="password" id="spw2" autocomplete="new-password" maxlength="64" />
+        </label>` : ''}
+        <p class="muted" style="font-size:12px;margin:0">请自行牢记密码。密码丢失将无法解开该备份；旧版明文文件仍可导入。</p>
+        <button class="btn btn-primary btn-block" type="button" data-act="ok">确定</button>
+      </div>
+    </div>
+  `
+  document.body.append(overlay)
+  const close = () => {
+    overlay.remove()
+    opts.onCancel?.()
+  }
+  const p1 = overlay.querySelector<HTMLInputElement>('#spw1')!
+  const p2 = overlay.querySelector<HTMLInputElement>('#spw2')
+  overlay.querySelector('[data-act="close"]')!.addEventListener('click', close)
+  overlay.querySelector('[data-act="ok"]')!.addEventListener('click', () => {
+    const a = p1.value.trim()
+    if (a.length < 4) {
+      p1.focus()
+      p1.setCustomValidity('至少 4 位')
+      p1.reportValidity()
+      return
+    }
+    if (opts.confirmMode && p2 && a !== p2.value.trim()) {
+      p2.focus()
+      p2.setCustomValidity('两次密码不一致')
+      p2.reportValidity()
+      return
+    }
+    overlay.remove()
+    opts.onSubmit(a)
+  })
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      document.removeEventListener('keydown', onKey)
+      close()
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      overlay.querySelector<HTMLButtonElement>('[data-act="ok"]')?.click()
+    }
+  }
+  document.addEventListener('keydown', onKey)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      document.removeEventListener('keydown', onKey)
+      close()
+    }
+  })
+  p1.focus()
 }
 
 function mountAppraisal(root: HTMLElement, s: GameState, h: AppHandlers) {

@@ -11,19 +11,21 @@ import type { GameState } from '../types'
 import { authUser } from './auth'
 import { dataErrorText, table } from './cloud'
 
-const SLOT_KEYS = ['guantu_slot_0', 'guantu_slot_1', 'guantu_slot_2'] as const
-const SLOT_AT_KEYS = ['guantu_slot_at_0', 'guantu_slot_at_1', 'guantu_slot_at_2'] as const
 const LEGACY_KEY = 'guantu_save_v1'
 const TABLE = 'saves'
 export const SAVE_VER = 2
-export const SLOT_COUNT = 3
+export const SLOT_COUNT = 6
+
+function clampSlot(i: number): number {
+  return Math.max(0, Math.min(SLOT_COUNT - 1, i | 0))
+}
 
 function slotKey(i: number) {
-  return SLOT_KEYS[Math.max(0, Math.min(SLOT_COUNT - 1, i))]
+  return `guantu_slot_${clampSlot(i)}`
 }
 
 function slotAtKey(i: number) {
-  return SLOT_AT_KEYS[Math.max(0, Math.min(SLOT_COUNT - 1, i))]
+  return `guantu_slot_at_${clampSlot(i)}`
 }
 
 /** 本机该槽位最后一次写入时间（毫秒）；0 表示没有本机存档 */
@@ -336,37 +338,162 @@ export function purgeSlots(): void {
   }
 }
 
-/* ── 导出 / 导入 ──────────────────────────────────────────────────── */
+/* ── 导出 / 导入（AES-GCM 加密，非明文） ─────────────────────────── */
 
-export function exportSave(s: GameState): string {
-  const json = JSON.stringify(s)
-  return `GUANTU1:${xorBase64(json)}`
+export type ExportProgress = {
+  catalog: string[]
+  originsDone: string[]
+  promoFails: unknown[]
+  exportedAt: string
 }
 
-export function importSave(raw: string, slot: number): { ok: boolean; error?: string; state?: GameState } {
+export type ImportResult = {
+  ok: boolean
+  error?: string
+  needPassword?: boolean
+  state?: GameState
+  progress?: ExportProgress
+}
+
+const EXPORT_MAGIC = 'GUANTU2:'
+const PBKDF2_ITERS = 180_000
+const SALT_LEN = 16
+const IV_LEN = 12
+
+function toB64(bytes: Uint8Array): string {
+  let bin = ''
+  bytes.forEach((b) => {
+    bin += String.fromCharCode(b)
+  })
+  return btoa(bin)
+}
+
+function fromB64(b64: string): Uint8Array {
+  const bin = atob(b64)
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+  return bytes
+}
+
+/** Web Crypto 要求独立 ArrayBuffer，避免 SharedArrayBuffer 类型干扰 */
+function asBuf(u8: Uint8Array): ArrayBuffer {
+  const out = new ArrayBuffer(u8.byteLength)
+  new Uint8Array(out).set(u8)
+  return out
+}
+
+async function deriveAesKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveKey'],
+  )
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: asBuf(salt), iterations: PBKDF2_ITERS, hash: 'SHA-256' },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt'],
+  )
+}
+
+/** 导出：整包 AES-GCM 加密。文件不是明文 JSON，需密码才能解开。 */
+export async function exportSave(
+  s: GameState,
+  password: string,
+  progress?: Partial<ExportProgress>,
+): Promise<string> {
+  if (!password || password.length < 4) {
+    throw new Error('导出密码至少 4 位')
+  }
+  const payload = {
+    k: 2,
+    save: s,
+    progress: {
+      catalog: progress?.catalog ?? [],
+      originsDone: progress?.originsDone ?? [],
+      promoFails: progress?.promoFails ?? [],
+      exportedAt: progress?.exportedAt ?? new Date().toISOString(),
+    },
+  }
+  const plain = new TextEncoder().encode(JSON.stringify(payload))
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN))
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN))
+  const key = await deriveAesKey(password, salt)
+  const cipher = new Uint8Array(
+    await crypto.subtle.encrypt({ name: 'AES-GCM', iv: asBuf(iv) }, key, asBuf(plain)),
+  )
+  const packed = new Uint8Array(salt.length + iv.length + cipher.length)
+  packed.set(salt, 0)
+  packed.set(iv, salt.length)
+  packed.set(cipher, salt.length + iv.length)
+  return EXPORT_MAGIC + toB64(packed)
+}
+
+/** 导入：支持 GUANTU2（AES-GCM）、GUANTU1（旧 XOR）与旧版明文 JSON。 */
+export async function importSave(
+  raw: string,
+  slot: number,
+  password?: string,
+): Promise<ImportResult> {
   const text = raw.trim()
   try {
     let json = ''
-    if (text.startsWith('GUANTU1:')) {
+    let progress: ExportProgress | undefined
+
+    if (text.startsWith(EXPORT_MAGIC)) {
+      if (!password) return { ok: false, needPassword: true, error: '请输入解密密码' }
+      const packed = fromB64(text.slice(EXPORT_MAGIC.length))
+      if (packed.length < SALT_LEN + IV_LEN + 16) {
+        return { ok: false, error: '存档已损坏或不完整' }
+      }
+      const salt = packed.subarray(0, SALT_LEN)
+      const iv = packed.subarray(SALT_LEN, SALT_LEN + IV_LEN)
+      const cipher = packed.subarray(SALT_LEN + IV_LEN)
+      let plainBuf: ArrayBuffer
+      try {
+        const key = await deriveAesKey(password, salt)
+        plainBuf = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: asBuf(iv) },
+          key,
+          asBuf(cipher),
+        )
+      } catch {
+        return { ok: false, error: '密码错误或存档已被修改' }
+      }
+      const body = JSON.parse(new TextDecoder().decode(plainBuf)) as {
+        save?: GameState
+        progress?: ExportProgress
+      }
+      if (!body?.save?.attrs || !body.save.postId) {
+        return { ok: false, error: '存档格式不正确' }
+      }
+      json = JSON.stringify(body.save)
+      if (body.progress) progress = body.progress
+    } else if (text.startsWith('GUANTU1:')) {
+      // 兼容旧版 XOR 混淆
       json = xorBase64Decode(text.slice('GUANTU1:'.length))
       if (!json) return { ok: false, error: '存档校验失败或已损坏' }
     } else if (text.startsWith('{')) {
-      // 兼容旧版明文 JSON
+      // 兼容旧版明文 JSON（仅历史备份）
       json = text
     } else {
       return { ok: false, error: '不是有效的官途存档' }
     }
+
     const p = JSON.parse(json) as GameState
     if (!p?.attrs || !p.postId) return { ok: false, error: '存档格式不正确' }
     const s = normalizeSave(p, slot)
     writeSlot(s)
-    return { ok: true, state: s }
+    return { ok: true, state: s, progress }
   } catch {
     return { ok: false, error: '无法解析存档（文件可能被修改）' }
   }
 }
 
-/** 轻量混淆：XOR + Base64（防随手打开，非密码学安全） */
+/** 旧版轻量混淆：XOR + Base64（仅用于读入历史备份） */
 const XOR_KEY = '官途-青云-2012-选调-墩苗'
 
 function xorEncode(str: string, key: string): string {
@@ -378,25 +505,11 @@ function xorEncode(str: string, key: string): string {
   return out
 }
 
-function b64Encode(str: string): string {
-  // UTF-8 安全 Base64
-  const bytes = new TextEncoder().encode(str)
-  let bin = ''
-  bytes.forEach((b) => {
-    bin += String.fromCharCode(b)
-  })
-  return btoa(bin)
-}
-
 function b64Decode(b64: string): string {
   const bin = atob(b64)
   const bytes = new Uint8Array(bin.length)
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
   return new TextDecoder().decode(bytes)
-}
-
-function xorBase64(json: string): string {
-  return b64Encode(xorEncode(json, XOR_KEY))
 }
 
 function xorBase64Decode(payload: string): string {

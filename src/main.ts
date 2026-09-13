@@ -80,11 +80,11 @@ import { checkAchievements } from './data/achievements'
 import { runAnnualAppraisal } from './systems/appraisal'
 import { getPost } from './data/posts'
 import { localizePlace } from './data/provinces'
-import { renderApp, applyFontSize, getFontSize, resetWeekDraft } from './ui/render'
+import { renderApp, applyFontSize, getFontSize, resetWeekDraft, promptSavePassword } from './ui/render'
 import { playStamp } from './ui/stamp'
 import { initAudioFromStore, playPaperSound, playClickSound, playNotifySound, isMuted, setMuted, setVolume } from './ui/audio'
-import { markCatalog, loadCatalog } from './state/catalog'
-import { loadOriginsDone } from './state/origins_done'
+import { markCatalog, loadCatalog, mergeCatalog } from './state/catalog'
+import { loadOriginsDone, mergeOriginsDone } from './state/origins_done'
 import { renderShareCard, downloadDataUrl } from './ui/share'
 import {
   GUIDE_STEPS,
@@ -622,32 +622,40 @@ function draw() {
       draw()
     },
     onExportSave: () => {
-      const base = state.phase === 'play' || state.phase === 'document' ? state : (readSlot(state.slot ?? 0) ?? state)
-      const payload = {
-        catalog: loadCatalog(),
-        originsDone: loadOriginsDone(),
-        promoFails: state.promoFailLog || [],
-        exportedAt: new Date().toISOString(),
-        ver: 3,
-      }
-      const enc = exportSave(base)
-      const blob = new Blob([enc], { type: 'application/octet-stream' })
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
-      a.download = `官途存档-${dateYMD()}-${payload.catalog.length}鉴.guantu`
-      a.click()
-      URL.revokeObjectURL(a.href)
-      state.lastFeedback = {
-        title: '已导出',
-        text: `存档已导出。当前图鉴 ${payload.catalog.length} 项、出身通关 ${payload.originsDone.length}/16（另附图鉴成就备份 JSON）`,
-      }
-      const metaBlob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
-      const a2 = document.createElement('a')
-      a2.href = URL.createObjectURL(metaBlob)
-      a2.download = `官途图鉴成就-${dateYMD()}.json`
-      a2.click()
-      URL.revokeObjectURL(a2.href)
-      draw()
+      promptSavePassword({
+        title: '设置导出密码',
+        confirmMode: true,
+        onSubmit: async (password) => {
+          const base =
+            state.phase === 'play' || state.phase === 'document'
+              ? state
+              : (readSlot(state.slot ?? 0) ?? state)
+          try {
+            const enc = await exportSave(base, password, {
+              catalog: loadCatalog(),
+              originsDone: loadOriginsDone(),
+              promoFails: state.promoFailLog || [],
+              exportedAt: new Date().toISOString(),
+            })
+            const blob = new Blob([enc], { type: 'application/octet-stream' })
+            const a = document.createElement('a')
+            a.href = URL.createObjectURL(blob)
+            a.download = `官途存档-${dateYMD()}-${loadCatalog().length}鉴.guantu`
+            a.click()
+            URL.revokeObjectURL(a.href)
+            state.lastFeedback = {
+              title: '已加密导出',
+              text: `存档已用 AES-GCM 导出（非明文）。当前图鉴 ${loadCatalog().length} 项、出身通关 ${loadOriginsDone().length}/16。请牢记导出密码，丢失无法解开。`,
+            }
+          } catch (e) {
+            state.lastFeedback = {
+              title: '导出失败',
+              text: e instanceof Error ? e.message : '导出失败，请重试。',
+            }
+          }
+          draw()
+        },
+      })
     },
     onImportSave: (text) => {
       const slot = state.slotPick ?? state.slot ?? 0
@@ -656,19 +664,38 @@ function draw() {
         draw()
         return
       }
-      const r = importSave(text, slot)
-      if (!r.ok) {
-        state.lastFeedback = {
-          title: '导入失败',
-          text: r.error || '无法解析存档。请确认是官途导出的 .guantu 或旧版 JSON。',
-        }
-        draw()
-        return
+      const runImport = (password?: string) => {
+        void importSave(text, slot, password).then((r) => {
+          if (r.needPassword) {
+            promptSavePassword({
+              title: '输入解密密码',
+              onSubmit: (p) => runImport(p),
+              onCancel: () => {
+                state.lastFeedback = { title: '已取消导入', text: '未写入任何存档。' }
+                draw()
+              },
+            })
+            return
+          }
+          if (!r.ok) {
+            state.lastFeedback = {
+              title: '导入失败',
+              text: r.error || '无法解析存档。请确认是官途导出的 .guantu 或旧版备份。',
+            }
+            draw()
+            return
+          }
+          if (r.progress) {
+            if (r.progress.catalog?.length) mergeCatalog(r.progress.catalog)
+            if (r.progress.originsDone?.length) mergeOriginsDone(r.progress.originsDone)
+          }
+          state = r.state!
+          state.phase = 'play'
+          if (!state.currentEventId) pullEvent()
+          draw()
+        })
       }
-      state = r.state!
-      state.phase = 'play'
-      if (!state.currentEventId) pullEvent()
-      draw()
+      runImport()
     },
     onToggleTimeline: () => {
       state.showTimeline = !state.showTimeline
