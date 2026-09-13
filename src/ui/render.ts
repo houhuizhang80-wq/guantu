@@ -436,11 +436,12 @@ function renderAuth(root: HTMLElement, s: GameState, h: AppHandlers) {
       <h2 class="screen-title">离线可玩</h2>
       <p class="auth-lead">当前环境无法使用云端账号，生涯存档会保存在这台设备的浏览器里。</p>
       <dl class="auth-meta">
+        <div><dt>玩家交流</dt><dd><strong>QQ 群 1107570877</strong></dd></div>
         <div><dt>存档位置</dt><dd>仅本机浏览器</dd></div>
         <div><dt>存档槽位</dt><dd>${SLOT_COUNT} 个</dd></div>
         <div><dt>导出备份</dt><dd>AES-GCM 加密 .guantu</dd></div>
       </dl>
-      <p class="auth-note">清空浏览器站点数据会丢失本机存档。重要进度请在设置中导出加密备份。玩家交流 QQ 群：<strong>1107570877</strong>。</p>
+      <p class="auth-note">清空浏览器站点数据会丢失本机存档。重要进度请在设置中导出加密备份。欢迎加入 QQ 群交流玩法与反馈问题。</p>
       <div class="auth-actions">
         <button class="btn btn-primary" data-act="offline" type="button">进入游戏（离线）</button>
       </div>
