@@ -8,6 +8,7 @@ import { factionVoteBonus } from './faction'
 import { setPostRank, maxAgeForRank } from './age'
 import { bondVoteBonus, syncBonds, patronGateRelax } from './network'
 import { applyPromoMashOnce, mashLimitFor } from './engagement'
+import { confidantVoteBonus } from './confidant'
 
 const STAGES: PromoTrack['stage'][] = ['minzhu', 'kaocha', 'gongshi', 'piaojue', 'renmian']
 
@@ -343,6 +344,8 @@ export function advancePromo(
       power += s.canvassBonus
       s.canvassBonus = 0
     }
+    // 心腹在票决前替你说话
+    power += confidantVoteBonus(s)
     const passLine =
       targetRank >= 19
         ? TUNE.lineTop

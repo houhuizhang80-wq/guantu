@@ -435,6 +435,14 @@ export interface GameState {
   pendingSecCase?: { name: string } | null
   /** 曾为秘书摆平问题（把柄：纪检立案时严重程度 +10） */
   secShielded?: boolean
+  /** 心腹（指定 1 位 NPC 或由秘书升任） */
+  confidant?: { npcId: string; name: string; trust: number; cd: number } | null
+  /** 心腹派私事在办 */
+  confidantTask?: { kind: 'intel' | 'risk' | 'cover'; monthsLeft: number } | null
+  /** 门生列表（推荐过的人） */
+  proteges?: { id: string; name: string; skill: number; loyalty: number }[]
+  /** 门生交办 */
+  protegeTask?: { id: string; name: string; kind: 'work' | 'watch'; monthsLeft: number } | null
 }
 
 /** 年度目标：一项可考核的年度指标 */

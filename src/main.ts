@@ -81,6 +81,17 @@ import {
   maybeProtegeVisit,
   tickFamilyCareer,
 } from './systems/newplay'
+import {
+  appointConfidant,
+  dismissConfidant,
+  appointSecretaryAsConfidant,
+  startConfidantTask,
+  tickConfidant,
+  addProtege,
+  tickProteges,
+  assignProtege,
+  maybeAutoAddProtege,
+} from './systems/confidant'
 import { checkEnding } from './systems/ending'
 import {
   type ActionId,
@@ -991,6 +1002,36 @@ function draw() {
       saveGame(state)
       draw()
     },
+    onAppointConfidant: (npcId: string) => {
+      const r = npcId === 'secretary' ? appointSecretaryAsConfidant(state) : appointConfidant(state, npcId)
+      state.lastFeedback = { title: '指定心腹', text: r.text }
+      if (r.ok) saveGame(state)
+      draw()
+    },
+    onDismissConfidant: () => {
+      const r = dismissConfidant(state)
+      state.lastFeedback = { title: '解除心腹', text: r.text }
+      saveGame(state)
+      draw()
+    },
+    onConfidantTask: (kind: 'intel' | 'risk' | 'cover') => {
+      const r = startConfidantTask(state, kind)
+      state.lastFeedback = { title: '心腹交办', text: r.text }
+      saveGame(state)
+      draw()
+    },
+    onAddProtege: () => {
+      const text = addProtege(state)
+      state.lastFeedback = { title: '收门生', text }
+      saveGame(state)
+      draw()
+    },
+    onAssignProtege: (id: string, kind: 'work' | 'watch') => {
+      const r = assignProtege(state, id, kind)
+      state.lastFeedback = { title: '门生交办', text: r.text }
+      saveGame(state)
+      draw()
+    },
     onCanvass: (kind: 'private' | 'public' | 'wait') => {
       const text = resolveCanvass(state, kind)
       state.lastFeedback = { title: '会前沟通', text }
@@ -1081,6 +1122,11 @@ function draw() {
       const pv = maybeProtegeVisit(state)
       if (pv) state.lastFeedback = { title: '门生来访', text: pv.replace(/^【门生】/, '') }
       tickFamilyCareer(state)
+      tickConfidant(state)
+      const pt = tickProteges(state)
+      if (pt && !state.lastFeedback) state.lastFeedback = { title: '门生', text: pt.replace(/^【门生】/, '') }
+      const ap = maybeAutoAddProtege(state)
+      if (ap) pushLog(state, `【门生】${ap}`)
       if (checkEnding(state)) {
         saveGame(state)
         draw()

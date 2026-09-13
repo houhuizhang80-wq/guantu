@@ -142,6 +142,8 @@ export function normalizeSave(p: GameState, slot: number): GameState {
   // 秘书腐败分支
   if (s.pendingSecCase === undefined) s.pendingSecCase = null
   if (s.secShielded === undefined) s.secShielded = false
+  if (s.confidant === undefined) s.confidant = null
+  if (s.proteges == null) s.proteges = []
   return s
 }
 

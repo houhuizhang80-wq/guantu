@@ -343,6 +343,10 @@ export function createNewGame(originId: string, provinceId?: string): GameState 
     memoirPages: 0,
     life: 1,
     inherit: [],
+    confidant: null,
+    proteges: [],
+    confidantTask: null,
+    protegeTask: null,
   }
   // 多周目余荫（很克制的五维与门生好感）
   applyLegacy(st)

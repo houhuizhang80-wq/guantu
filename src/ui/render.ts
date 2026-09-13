@@ -224,6 +224,11 @@ export interface AppHandlers {
   onFamilyCareer: (kind: 'work' | 'care' | 'study') => void
   onRankTrackWork: () => void
   onPrepInspect: () => void
+  onAppointConfidant: (npcId: string) => void
+  onDismissConfidant: () => void
+  onConfidantTask: (kind: 'intel' | 'risk' | 'cover') => void
+  onAddProtege: () => void
+  onAssignProtege: (id: string, kind: 'work' | 'watch') => void
   onResolveVote: (choice: 'yes' | 'no' | 'abstain') => void
   onResolveSecCase: (choice: 'jiege' | 'baoquan' | 'baogao') => void
   onShowFailLog: () => void
@@ -1858,6 +1863,54 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     }
     npcList.append(recBox)
   }
+  // 门生
+  const psBox = el('div', 'npc-list')
+  const psHead = el('div', 'muted')
+  psHead.style.cssText = 'margin:8px 0 4px;font-size:12px'
+  const proteges = s.proteges ?? []
+  psHead.textContent = `门生 ${proteges.length}/5${s.confidant ? ` · 心腹：${s.confidant.name}` : ''}`
+  psBox.append(psHead)
+  if (proteges.length === 0) {
+    const addBtn = el('button', 'btn btn-ghost')
+    addBtn.textContent = '收一位门生'
+    addBtn.disabled = !!s.currentEventId || (s.actionPoints < 1)
+    addBtn.title = '耗 1 行动点；厅局后偶有来访与交办'
+    addBtn.addEventListener('click', () => h.onAddProtege())
+    psBox.append(addBtn)
+  } else {
+    for (const p of proteges) {
+      const row = el('div', 'npc-row')
+      row.innerHTML = `
+        <div class="npc-main">
+          <div class="npc-name">${p.name}</div>
+          <div class="npc-role">能力 ${p.skill} · 忠诚 ${p.loyalty}</div>
+        </div>
+      `
+      const acts = el('div', 'faction-acts')
+      acts.style.cssText = 'display:flex;gap:4px;margin-top:4px'
+      for (const [k, label] of [
+        ['work', '交办'],
+        ['watch', '盯风声'],
+      ] as const) {
+        const b = el('button', 'btn btn-ghost')
+        b.textContent = label
+        b.disabled = !!s.protegeTask || !!s.currentEventId || s.actionPoints < 1
+        b.addEventListener('click', () => h.onAssignProtege(p.id, k))
+        acts.append(b)
+      }
+      const wrap = el('div')
+      wrap.append(row, acts)
+      psBox.append(wrap)
+    }
+    if (s.protegeTask) {
+      const t = el('div', 'muted')
+      t.style.cssText = 'font-size:11px;margin-top:4px'
+      t.textContent = `${s.protegeTask.name} 在办（剩 ${s.protegeTask.monthsLeft} 月）`
+      psBox.append(t)
+    }
+  }
+  npcList.append(psBox)
+
   if (rows.length === 0 && bonds.length === 0) {
     npcList.append(el('div', 'muted', '本阶段关系网尚未打开。'))
   }
@@ -2815,6 +2868,27 @@ function mountNpcModal(root: HTMLElement, s: GameState, h: AppHandlers) {
           .map((t) => `<button class="btn btn-ghost" data-roster-tag="${t}">${t}</button>`)
           .join('')}
       </div>
+      <div class="npc-modal-fav" style="margin-top:10px">心腹</div>
+      <div class="npc-acts" style="margin-bottom:8px">
+        ${s.confidant?.npcId === id
+          ? `<button class="npc-act" data-xf="dismiss">
+              <strong>解除心腹</strong><span>信任 ${Math.round(s.confidant.trust)} · 更干净</span>
+            </button>
+            <button class="npc-act" data-xf-t="intel" ${s.confidantTask || s.actionPoints < 1 || s.confidant.cd > 0 ? 'disabled class="npc-act choice-locked"' : ''}>
+              <strong>打听风声</strong><span>${s.confidantTask ? '已有交办' : s.confidant.cd > 0 ? `冷却 ${s.confidant.cd} 月` : '1 行动点 · 降风险'}</span>
+            </button>
+            <button class="npc-act" data-xf-t="risk" ${s.confidantTask || s.actionPoints < 1 || s.confidant.cd > 0 ? 'disabled class="npc-act choice-locked"' : ''}>
+              <strong>办棘手事</strong><span>信任越高越稳</span>
+            </button>
+            <button class="npc-act" data-xf-t="cover" ${s.confidantTask || s.actionPoints < 1 || s.confidant.cd > 0 ? 'disabled class="npc-act choice-locked"' : ''}>
+              <strong>挡一次麻烦</strong><span>程序风险大</span>
+            </button>`
+          : s.confidant
+            ? `<p class="muted" style="margin:0 0 6px">已有心腹：${s.confidant.name}。可先解除再指定他人。</p>`
+            : `<button class="npc-act${favor < 40 ? ' choice-locked' : ''}" data-xf="appoint" ${favor < 40 ? 'disabled' : ''}>
+                <strong>结为心腹</strong><span>${favor < 40 ? `好感需≥40（现 ${favor}）` : '票决加成 · 可派私事'}</span>
+              </button>`}
+      </div>
       <div class="npc-modal-fav" style="margin-top:10px">托人办事（耗好感）</div>
       <div class="npc-acts">
         <button class="npc-act" data-favor="info" ${favor < 15 ? 'disabled class="npc-act choice-locked"' : ''}>
@@ -2858,6 +2932,17 @@ function mountNpcModal(root: HTMLElement, s: GameState, h: AppHandlers) {
     btn.addEventListener('click', () => {
       h.onAskFavor(id, btn.dataset.favor as 'risk' | 'promo' | 'info')
     })
+  })
+  overlay.querySelectorAll<HTMLButtonElement>('[data-xf]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.xf === 'appoint') h.onAppointConfidant(id)
+      else h.onDismissConfidant()
+    })
+  })
+  overlay.querySelectorAll<HTMLButtonElement>('[data-xf-t]').forEach((btn) => {
+    btn.addEventListener('click', () =>
+      h.onConfidantTask(btn.dataset.xfT as 'intel' | 'risk' | 'cover'),
+    )
   })
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) h.onCloseNpc()

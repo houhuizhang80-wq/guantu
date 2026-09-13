@@ -19,6 +19,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13v',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '心腹系统：交往圈中好感≥40 可结为心腹（或联络员熟练度≥50 后升任）；可派「打听风声 / 办棘手事 / 挡一次麻烦」，票决有加成；风险高且信任低可能出事。' },
+      { kind: '新增', text: '门生系统：关系页可收门生（最多 5 人），可交办实事或盯风声；升到副处后偶有门生来访/惹事；能力与忠诚影响结果。' },
+    ],
+  },
+  {
     ver: '2026.09.13u',
     date: '今天',
     items: [
