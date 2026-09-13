@@ -2585,10 +2585,10 @@ export const POSTS: Post[] = mergeRoutes(BASE_POSTS, EXTRA_POSTS, EXTRA_LINKS).m
   if (p.termMonths == null) {
     p.termMonths = p.rank >= 18 ? 78 : p.leader ? 60 : p.track === 'rank' ? 36 : 48
   }
-  // 拉长最低任职月数（届中调整下限）——副国/正国更长
+  // 拉长最低任职月数（届中调整下限）——与缩短后的中局节奏对齐
   if (p.leader && p.rank >= 4) {
     const floor =
-      p.rank >= 18 ? 72 : p.rank >= 15 ? 72 : p.rank >= 12 ? 36 : p.rank >= 8 ? 28 : p.rank >= 6 ? 24 : 20
+      p.rank >= 18 ? 24 : p.rank >= 15 ? 24 : p.rank >= 12 ? 20 : p.rank >= 8 ? 18 : p.rank >= 6 ? 16 : 14
     if (p.minMonths < floor) p.minMonths = floor
   }
   // 高层门槛：正部以上保持硬门槛
