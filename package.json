@@ -13,7 +13,10 @@
     "smoke:extra": "npx tsx scripts/smoke_extra.ts",
     "sim": "npx tsx scripts/simulate.ts",
     "sim:smart": "npx tsx scripts/simulate_smart.ts",
-    "sim:summit": "npx tsx scripts/simulate_zhengguo.ts"
+    "sim:summit": "npx tsx scripts/simulate_zhengguo.ts",
+    "verify:export": "npx tsx scripts/verify_export.ts",
+    "verify:gameplay": "npx tsx scripts/verify_gameplay.ts",
+    "verify:endings": "npx tsx scripts/verify_endings.ts"
   },
   "devDependencies": {
     "typescript": "~6.0.2",

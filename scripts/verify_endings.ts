@@ -35,7 +35,7 @@ const young = scenario(36, 48)
 const pathsYoung = availablePaths(young)
 console.log(
   '36岁副处可用去向:',
-  pathsYoung.map((p) => `${p.label ?? p.to}:${p.ok ? 'ok' : 'no'}`).join(', ') || '(无)',
+  pathsYoung.map((p) => `${p.path.label ?? p.path.to}:${p.ok ? 'ok' : 'no'}`).join(', ') || '(无)',
 )
 const e1 = resolveEnding(young)
 console.log('36岁副处结局:', e1 ? `${e1.id} / ${e1.title}` : '(无，游戏继续)')
