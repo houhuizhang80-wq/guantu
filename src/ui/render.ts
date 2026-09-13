@@ -1101,7 +1101,8 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
   // 台账
   const projSec = el('div')
   const projN = s.projects?.length ?? 0
-  projSec.innerHTML = `<div class="fam-line"><b>在办台账</b> ${projN}/3</div>`
+  const projCap = (getPost(s.postId).rank ?? 0) >= 6 ? 4 : 3
+  projSec.innerHTML = `<div class="fam-line"><b>在办台账</b> ${projN}/${projCap}</div>`
   if (projN === 0) {
     projSec.append(
       el(
@@ -1555,7 +1556,7 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
       </div>
       <div class="event-paper">
         <h2 class="event-title">${L(ev.title)}</h2>
-        <p class="event-text">${L(getEventText(ev, s.originId))}</p>
+        <p class="event-text">${L(getEventText(ev, s.originId, s.eventHits?.[ev.id] ?? 1))}</p>
       </div>
     `
     const choices = el('div', 'choices')

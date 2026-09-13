@@ -19,6 +19,7 @@ import { EXPAND_EVENTS } from './events_expand'
 import { FAMILY_CAREER_EVENTS, ORIGIN_MORE_EVENTS } from './events_more'
 import { MORE_EVENTS2 } from './events_more2'
 import { MEETING_EVENTS } from './events_meeting'
+import { MID_DAILY_EVENTS, LOW_DAILY_EXTRA } from './events_mid'
 
 /**
  * 乡镇篇完整剧本（云河县 · 青石镇）
@@ -1149,6 +1150,8 @@ export const EVENTS: GameEvent[] = [
   ...ORIGIN_MORE_EVENTS,
   ...MORE_EVENTS2,
   ...MEETING_EVENTS,
+  ...MID_DAILY_EVENTS,
+  ...LOW_DAILY_EXTRA,
 ].map(expandMainChoices)
 
 export function getEvent(id: string): GameEvent {
@@ -1157,13 +1160,42 @@ export function getEvent(id: string): GameEvent {
   return e
 }
 
-/** 取事件正文（支持按出身覆盖） */
-export function getEventText(ev: GameEvent, originId?: string | null): string {
+/** 取事件正文（支持按出身覆盖 + 重复触发时的轻量场景变体） */
+export function getEventText(
+  ev: GameEvent,
+  originId?: string | null,
+  hits = 1,
+): string {
+  let base = ev.text
   if (originId && ev.textByOrigin) {
     const t = ev.textByOrigin[originId as keyof typeof ev.textByOrigin]
-    if (t) return t
+    if (t) base = t
   }
-  return ev.text
+  // 重复触发：加一句场景句，避免正文完全一字不差（仅日常/温和/人脉）
+  if (hits >= 2 && (ev.kind === 'daily' || ev.kind === 'calm' || ev.kind === 'npc')) {
+    const dressings = [
+      '走廊里有人在压低声音打电话。',
+      '窗外洒水车经过，声音闷闷的。',
+      '茶凉了又续上，续到第三回。',
+      '打印机卡过一次纸，像在提醒进度。',
+      '手机在桌上震了两下，你没看。',
+      '楼道声控灯灭了，又亮了。',
+      '会议记录本翻到新的一页。',
+    ]
+    const pick = dressings[(hits + ev.id.length) % dressings.length]
+    // 第 3 次起再叠一层，强化「熟脸但场景在变」
+    if (hits >= 4) {
+      const more = [
+        '你几乎能背出接下来会有人问什么。',
+        '同样的事，换了个抬头和日期。',
+        '流程还是那套流程，人换了一茬。',
+      ]
+      base = `${base} ${pick}${more[hits % more.length]}`
+    } else {
+      base = `${base} ${pick}`
+    }
+  }
+  return base
 }
 
 export const TOWNSHIP_EVENT_COUNT = TOWNSHIP_EVENTS.length

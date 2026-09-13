@@ -1351,9 +1351,12 @@ function resolveActionVariant(actionId: ActionId, variantId: string) {
   focusBonus(state, 'action')
   applyNpcFx(state.npcs, v.npcFx)
 
-  // 有机会把行动转成在办台账
+  // 有机会把行动转成在办台账（县处中局更易立项，给等晋升阶段可推进的目标）
   let extra = ''
-  if (state.projects.length < 3 && Math.random() < 0.35) {
+  const rankNow = getPost(state.postId).rank
+  const projCap = rankNow >= 6 ? 4 : 3
+  const startP = rankNow >= 6 && rankNow <= 14 ? 0.5 : 0.35
+  if (state.projects.length < projCap && Math.random() < startP) {
     const def = pickStartableProject(state, actionId)
     if (def) {
       state.projects.push(startProject(def))

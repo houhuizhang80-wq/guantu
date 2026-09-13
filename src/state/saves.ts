@@ -74,6 +74,7 @@ export function normalizeSave(p: GameState, slot: number): GameState {
   // 旧档提示标记
   if (!s.provinceId) s.flags = { ...(s.flags || {}), migratedLegacySave: true }
   if (s.recentEvents == null) s.recentEvents = []
+  if (s.eventHits == null) s.eventHits = {}
   if (s.projects == null) s.projects = []
   if (s.paths == null) s.paths = ['difang']
   if (s.achievements == null) s.achievements = []

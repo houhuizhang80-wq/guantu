@@ -249,6 +249,8 @@ export interface GameState {
   usedEvents: string[]
   /** 最近用过的事件 id（冷却用，与 onlyOnce 分离，避免冲掉一次性标记） */
   recentEvents: string[]
+  /** 各事件累计触发次数（降权/正文变体用；旧档补空对象） */
+  eventHits?: Record<string, number>
   flags: Record<string, boolean | number | string>
   log: string[]
   currentEventId: string | null

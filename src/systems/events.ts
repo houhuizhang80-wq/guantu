@@ -3,10 +3,13 @@ import { EVENTS } from '../data/events'
 import { getPost } from '../data/posts'
 import { getProvince } from '../data/provinces'
 
+/** 冷却窗口：最近 N 次抽到的事件不再进池（比旧版 4 更长，压重复） */
+const RECENT_COOLDOWN = 12
+
 function eligible(s: GameState, e: GameEvent): boolean {
   if (e.onlyOnce && s.usedEvents.includes(e.id)) return false
   if (!e.onlyOnce) {
-    const recent = s.recentEvents ?? s.usedEvents.slice(-3)
+    const recent = s.recentEvents ?? []
     if (recent.includes(e.id)) return false
   }
   if (!meetsRequire(s, e.require)) return false
@@ -25,16 +28,28 @@ function eligible(s: GameState, e: GameEvent): boolean {
   return true
 }
 
-function pickWeighted(pool: GameEvent[]): GameEvent | null {
+function hitsOf(s: GameState, id: string): number {
+  return s.eventHits?.[id] ?? 0
+}
+
+/**
+ * 加权抽取：见过越多次权重越低，从未见过的有加成。
+ * 避免「加班夜 ×30」把中局打成复读。
+ */
+function pickWeighted(pool: GameEvent[], s: GameState): GameEvent | null {
   if (pool.length === 0) return null
-  const total = pool.reduce((sum, e) => sum + Math.max(e.weight, 0), 0)
-  if (total <= 0) {
-    return pool[Math.floor(Math.random() * pool.length)]
-  }
+  const weights = pool.map((e) => {
+    const hits = hitsOf(s, e.id)
+    const base = Math.max(e.weight, 0.5)
+    if (hits <= 0) return base * 1.6
+    return base / Math.pow(1 + hits, 1.35)
+  })
+  const total = weights.reduce((a, b) => a + b, 0)
+  if (total <= 0) return pool[Math.floor(Math.random() * pool.length)]
   let roll = Math.random() * total
-  for (const e of pool) {
-    roll -= Math.max(e.weight, 0)
-    if (roll <= 0) return e
+  for (let i = 0; i < pool.length; i++) {
+    roll -= weights[i]
+    if (roll <= 0) return pool[i]
   }
   return pool[pool.length - 1]
 }
@@ -53,28 +68,36 @@ export function scheduleNextEvent(s: GameState): GameEvent | null {
   if (s.risk >= 30 && s.turn > 3) {
     const crises = EVENTS.filter((e) => e.kind === 'crisis' && eligible(s, e))
     if (crises.length > 0 && Math.random() < Math.min(0.55, 0.15 + s.risk / 180)) {
-      return crises[Math.floor(Math.random() * crises.length)]
+      // 危机也降权，避免同一危机反复砸脸
+      return pickWeighted(crises, s)
     }
   }
 
   const soft = EVENTS.filter(
     (e) => (e.kind === 'daily' || e.kind === 'npc' || e.kind === 'calm') && eligible(s, e),
   )
-  const picked = pickWeighted(soft)
+  const picked = pickWeighted(soft, s)
   if (picked) return picked
 
   const any = EVENTS.filter((e) => eligible(s, e))
-  return any.length ? any[Math.floor(Math.random() * any.length)] : null
+  return any.length ? pickWeighted(any, s) : null
 }
 
 export function markEventUsed(s: GameState, e: GameEvent) {
+  if (!s.eventHits) s.eventHits = {}
+  s.eventHits[e.id] = (s.eventHits[e.id] ?? 0) + 1
+
   if (e.onlyOnce) {
     if (!s.usedEvents.includes(e.id)) s.usedEvents.push(e.id)
   } else {
     if (!s.recentEvents) s.recentEvents = []
     s.recentEvents.push(e.id)
-    if (s.recentEvents.length > 4) s.recentEvents.shift()
+    if (s.recentEvents.length > RECENT_COOLDOWN) s.recentEvents.shift()
   }
+}
+
+export function eventHitCount(s: GameState, id: string): number {
+  return hitsOf(s, id)
 }
 
 export function meetsRequire(
