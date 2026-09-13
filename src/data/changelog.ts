@@ -19,6 +19,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13e',
+    date: '今天',
+    items: [
+      { kind: '修复', text: '晋升：上年度考核「优秀」现在会写进选拔（推荐/考察/票决小幅加分，基层更明显），不再只是成就图标。' },
+      { kind: '修复', text: '晋升页：去向全被锁时不再只显示一句「暂无去向」，会列出最多 6 条锁定原因，并提示先看任职月数/经手事件/年龄/草率分。' },
+      { kind: '修复', text: '点晋升去向若启动失败，会弹出具体原因，不再无响应。' },
+    ],
+  },
+  {
     ver: '2026.09.13d',
     date: '今天',
     items: [

@@ -1502,6 +1502,10 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
   } else {
     const open = paths.filter((p) => p.ok)
     const locked = paths.filter((p) => !p.ok)
+    const allLockedHint =
+      open.length === 0 && locked.length > 0
+        ? `<p class="promo-wait">条件尚未满足——点开下方锁住的去向可看具体原因（常见：本岗任职月数、经手事件件数、年龄、草率分）。考核「优秀」会小幅助力，但不能跳过任职年限与实绩门槛。</p>`
+        : ''
     promoHtml = `<div class="path-list">
       ${open
         .map(
@@ -1509,9 +1513,9 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
             `<button class="path-btn" data-path="${p.path.to}"><strong>${p.path.label}</strong><span>${L(getPost(p.path.to).title)}</span></button>`,
         )
         .join('')}
-      ${open.length === 0 ? `<p class="promo-wait">暂无符合程序条件的去向。</p>` : ''}
+      ${allLockedHint}
       ${locked
-        .slice(0, 3)
+        .slice(0, 6)
         .map(
           (p) =>
             `<div class="path-btn locked"><strong>${p.path.label}</strong><span>${p.reason}</span></div>`,
@@ -1524,7 +1528,7 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     <ol class="rung-list">${rungHtml}</ol>
     <p class="ladder-law">领导职务序列 + 职务与职级并行。股级为基层内设。选拔：推荐→考察→公示→任免，领导职务试用期一年。</p>
     <div class="promo-box">
-      <div class="chapter-line">本岗 ${months} 个月（约 ${termYears} 年） · 年龄 ${s.age} · 经手事件 ${s.eventsHandledThisPost ?? 0} 件${(s.mashScore ?? 0) >= 40 ? ' · 草率分偏高' : ''}</div>
+      <div class="chapter-line">本岗 ${months} 个月（约 ${termYears} 年） · 年龄 ${s.age} · 经手事件 ${s.eventsHandledThisPost ?? 0} 件${(s.mashScore ?? 0) >= 40 ? ' · 草率分偏高' : ''}${s.lastAppraisal?.grade === '优秀' ? ' · 上年考核优秀' : ''}</div>
       ${promoHtml}
     </div>
   `

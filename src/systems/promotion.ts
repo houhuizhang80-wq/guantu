@@ -46,6 +46,19 @@ export function monthsInPost(s: GameState): number {
   return (s.flags.monthsInPost as number) ?? 0
 }
 
+/** 上一年度考核是否「优秀」——组织「重点培养」会在选拔各环节给一点助力 */
+function recentExcellent(s: GameState): boolean {
+  return s.lastAppraisal?.grade === '优秀'
+}
+
+/** 优秀考核在选拔中的加成（高层收窄，避免冲淡登顶门槛） */
+function excellentBonus(s: GameState, targetRank: number): number {
+  if (!recentExcellent(s)) return 0
+  if (targetRank >= 18) return 1
+  if (targetRank >= 15) return 2
+  return 4
+}
+
 export function availablePaths(s: GameState): {
   path: NextPath
   ok: boolean
@@ -179,6 +192,7 @@ export function advancePromo(
   if (stage === 'minzhu') {
     let power = a.GX * 0.4 + a.MX * 0.3 + a.NL * 0.2 + a.ZJ * 0.1
     power += strat?.passBonus ?? 0
+    power += excellentBonus(s, getPost(s.promo.targetId).rank)
     power -= (s.mashScore ?? 0) * 0.1
     if (power < 35) {
       const note = strat?.failText || '民主推荐票数不足，程序中止。'
@@ -205,6 +219,7 @@ export function advancePromo(
   if (stage === 'kaocha') {
     let power = a.Lian * 0.45 + (100 - s.risk) * 0.35 + a.NL * 0.2
     power += strat?.passBonus ?? 0
+    power += excellentBonus(s, getPost(s.promo.targetId).rank) * 0.75
     power -= (s.mashScore ?? 0) * 0.08
     const fromR = getPost(s.postId).rank
     const kaochaLine = fromR >= 15 ? 68 : 50
@@ -317,6 +332,10 @@ export function advancePromo(
       if (s.risk > TUNE.topRiskFrom) power -= Math.round((s.risk - TUNE.topRiskFrom) * TUNE.topRiskK)
     }
     power += strat?.passBonus ?? 0
+    // 连续/上年优秀：组织「重点培养」——基层加成更明显
+    if (recentExcellent(s)) {
+      power += from.rank >= 18 ? 1 : from.rank >= 15 ? 2 : 5
+    }
     const passLine =
       targetRank >= 19
         ? TUNE.lineTop

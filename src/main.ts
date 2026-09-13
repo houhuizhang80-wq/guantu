@@ -61,7 +61,7 @@ import { markEventUsed, meetsRequire, scheduleNextEvent } from './systems/events
 import { playStampSound } from './ui/audio'
 import { maybeInvestigation, riskTick } from './systems/risk'
 import { advanceJijian } from './systems/jijian'
-import { monthlyDrift, startPromo, advancePromo, confirmAppointment, cancelPromo, availablePaths } from './systems/promotion'
+import { monthlyDrift, startPromo, advancePromo, confirmAppointment, cancelPromo, availablePaths, canStartPromo } from './systems/promotion'
 import { checkEnding } from './systems/ending'
 import {
   type ActionId,
@@ -1091,20 +1091,34 @@ function draw() {
     onStartPromo: (toId) => {
       const list = availablePaths(state)
       const hit = list.find((p) => p.path.to === toId && p.ok)
-      if (!hit) return
-      const doc = startPromo(state, hit.path)
-      if (doc) {
-        firstTimeHint(
-          state,
-          'promo',
-          '选拔程序',
-          '推荐 → 考察 → 公示 → 票决 → 任免。每一步都要选策略，乱选会失败。',
-        )
-        state.pendingDocument = doc
-        state.phase = 'document'
-        saveGame(state)
+      if (!hit) {
+        const locked = list.find((p) => p.path.to === toId)
+        state.lastFeedback = {
+          title: '暂不能启动选拔',
+          text: locked?.reason || '该去向当前不可用，请查看职务与职级页的锁定原因。',
+        }
         draw()
+        return
       }
+      const doc = startPromo(state, hit.path)
+      if (!doc) {
+        state.lastFeedback = {
+          title: '暂不能启动选拔',
+          text: canStartPromo(state).reason || hit.reason || '程序条件未满足。',
+        }
+        draw()
+        return
+      }
+      firstTimeHint(
+        state,
+        'promo',
+        '选拔程序',
+        '推荐 → 考察 → 公示 → 票决 → 任免。每一步都要选策略，乱选会失败。',
+      )
+      state.pendingDocument = doc
+      state.phase = 'document'
+      saveGame(state)
+      draw()
     },
     onAdvancePromo: (strategyId?: string) => {
       const r = advancePromo(state, strategyId)
