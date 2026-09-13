@@ -37,8 +37,7 @@ assert(s.mashScore === 12, `连3 +8 got ${s.mashScore}`)
 noteChoice(s, 2) // streak 4
 assert(s.mashScore === 24, `连4 +12 got ${s.mashScore}`)
 noteChoice(s, 3) // break
-assert(s.mashScore === 19, `认真 −5（因≥40? 24<40 应为-3）got ${s.mashScore}`)
-// 24 < 40 so decay 3 → 21
+assert(s.mashScore === 21, `认真 −3（24<40）got ${s.mashScore}`)
 s.mashScore = 40
 noteChoice(s, 0)
 noteChoice(s, 1)
