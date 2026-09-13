@@ -40,7 +40,6 @@ noteChoice(s, 3) // break
 assert(s.mashScore === 21, `认真 −3（24<40）got ${s.mashScore}`)
 s.mashScore = 40
 noteChoice(s, 0)
-noteChoice(s, 1)
 assert(s.mashScore === 35, `≥40 认真 −5 got ${s.mashScore}`)
 
 s.mashScore = 20
