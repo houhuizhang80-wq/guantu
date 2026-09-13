@@ -264,6 +264,7 @@ export function advancePromo(
     grantStratFx()
     s.promo.passed.push('gongshi')
     s.promo.stage = 'piaojue'
+    s.pendingCanvass = true
     const note = strat?.successText || '公示期平稳。'
     pushLog(s, `【公示】${note}`)
     return {
@@ -336,6 +337,11 @@ export function advancePromo(
     // 连续/上年优秀：组织「重点培养」——基层加成更明显
     if (recentExcellent(s)) {
       power += from.rank >= 18 ? 1 : from.rank >= 15 ? 2 : 5
+    }
+    // 会前沟通加分（用完即清）
+    if (s.canvassBonus) {
+      power += s.canvassBonus
+      s.canvassBonus = 0
     }
     const passLine =
       targetRank >= 19

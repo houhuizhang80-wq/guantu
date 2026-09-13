@@ -21,6 +21,7 @@ import { availablePaths } from '../systems/promotion'
 import { goalCurrent, goalDone, goalTargetText } from '../systems/goals'
 import { factionName } from '../systems/faction'
 import { POLICY_DEFS, peekFactionTask } from '../systems/policy'
+import { canRankTrackWork, canPrepInspect } from '../systems/newplay'
 import { bondRefs, isBond, PATRON_FAVOR } from '../systems/network'
 import { DUTY_META, getDutyItem } from '../data/duties'
 import { canStartDuty } from '../systems/duty'
@@ -219,6 +220,10 @@ export interface AppHandlers {
   onFactionAct: (kind: 'loyal' | 'low' | 'sabotage') => void
   onFactionTask: (choice: 'accept' | 'decline') => void
   onStartPolicy: (id: string) => void
+  onCanvass: (kind: 'private' | 'public' | 'wait') => void
+  onFamilyCareer: (kind: 'work' | 'care' | 'study') => void
+  onRankTrackWork: () => void
+  onPrepInspect: () => void
   onResolveVote: (choice: 'yes' | 'no' | 'abstain') => void
   onResolveSecCase: (choice: 'jiege' | 'baoquan' | 'baogao') => void
   onShowFailLog: () => void
@@ -1062,6 +1067,22 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
       familyPanel.append(childBox)
     }
     familyPanel.innerHTML += `<p class="muted" style="font-size:12px;margin-top:10px">长期高风险、快进荒政会伤家庭。家属事件会在事务页出现。</p>`
+    const fc = el('div', 'fam-box')
+    fc.append(panelHead('家庭侧重', s.familyCareer === 'work' ? '事业' : s.familyCareer === 'care' ? '顾家' : s.familyCareer === 'study' ? '少干预' : '未定'))
+    fc.innerHTML += `
+      <div class="faction-acts">
+        <button class="btn btn-ghost" data-fc="work" ${s.currentEventId ? 'disabled' : ''}>支持配偶拼事业</button>
+        <button class="btn btn-ghost" data-fc="care" ${s.currentEventId ? 'disabled' : ''}>多顾家</button>
+        <button class="btn btn-ghost" data-fc="study" ${s.currentEventId ? 'disabled' : ''}>对子女少干预</button>
+      </div>
+      <p class="muted" style="font-size:11px;margin:4px 0 0">侧重会影响后续数月的家庭与属性走向。</p>
+    `
+    fc.querySelectorAll<HTMLButtonElement>('[data-fc]').forEach((btn) => {
+      btn.addEventListener('click', () =>
+        h.onFamilyCareer(btn.dataset.fc as 'work' | 'care' | 'study'),
+      )
+    })
+    familyPanel.append(fc)
   }
 
   // 派系（独立页签面板）
@@ -1282,6 +1303,27 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
     pol.append(box)
   }
   projBox.append(pol)
+
+  // 职级实权 / 迎检准备
+  const extraBox = el('div', 'fam-box')
+  extraBox.append(panelHead('本月额外', '职级 · 迎检'))
+  const isRank = post.track === 'rank'
+  const rankOk = canRankTrackWork(s).ok
+  const inspOk = canPrepInspect(s).ok
+  extraBox.innerHTML += `
+    <div class="faction-acts">
+      <button class="btn btn-ghost" data-ex="rank" ${!isRank || !rankOk ? 'disabled' : ''}>${isRank ? '课题 / 列席' : '职级序列专属'}</button>
+      <button class="btn btn-ghost" data-ex="insp" ${!inspOk ? 'disabled' : ''}>迎检自查</button>
+    </div>
+    <p class="muted" style="font-size:11px;margin:4px 0 0">职级序列可写课题或列席会议；迎检自查降风险、涨廉洁。</p>
+  `
+  extraBox.querySelectorAll<HTMLButtonElement>('[data-ex]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.ex === 'rank') h.onRankTrackWork()
+      else h.onPrepInspect()
+    })
+  })
+  projBox.append(extraBox)
 
   // 调研
   const rs = el('div', 'fam-box')
@@ -1561,6 +1603,14 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
             .join('<span class="promo-arrow">→</span>')}
         </div>
         <p class="promo-blurb">${blurb} <strong class="promo-rate">本步估算通过率 ≈ ${rate}%</strong>（策略可加减）</p>
+        ${s.promo.stage === 'piaojue' && s.pendingCanvass ? `
+        <div class="promo-blurb" style="margin-top:6px">会前是否沟通？（会影响票决加减与廉洁风险）
+          <div class="faction-acts" style="margin-top:4px">
+            <button class="btn btn-ghost" data-cv="private">私下沟通（关系↑ 廉洁↓）</button>
+            <button class="btn btn-ghost" data-cv="public">会上把工作讲清</button>
+            <button class="btn btn-ghost" data-cv="wait">按兵不动</button>
+          </div>
+        </div>` : ''}
         <div class="promo-strats">
           ${strategies
             .map(
@@ -1614,6 +1664,9 @@ function renderPlay(root: HTMLElement, s: GameState, h: AppHandlers) {
   })
   ladder.querySelectorAll<HTMLButtonElement>('[data-strat]').forEach((btn) => {
     btn.addEventListener('click', () => h.onAdvancePromo(btn.dataset.strat))
+  })
+  ladder.querySelectorAll<HTMLButtonElement>('[data-cv]').forEach((btn) => {
+    btn.addEventListener('click', () => h.onCanvass(btn.dataset.cv as 'private' | 'public' | 'wait'))
   })
   ladder.querySelector('[data-promo-cancel]')?.addEventListener('click', h.onCancelPromo)
 

@@ -127,6 +127,8 @@ export function normalizeSave(p: GameState, slot: number): GameState {
   if (s.pendingProjectChoice === undefined) s.pendingProjectChoice = null
   if (s.pendingVisit === undefined) s.pendingVisit = null
   if (s.pendingVote === undefined) s.pendingVote = null
+  if (s.pendingCanvass === undefined) s.pendingCanvass = false
+  if (s.familyCareer === undefined) s.familyCareer = null
   if (s.retiredMode === undefined) s.retiredMode = false
   if (s.promoFailLog == null) s.promoFailLog = []
   if (s.catalogStage === undefined) s.catalogStage = 'all'

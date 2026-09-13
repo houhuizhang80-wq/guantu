@@ -72,6 +72,15 @@ import {
   peekFactionTask,
   tickFactionRevenge,
 } from './systems/policy'
+import {
+  catalogOpeningBonus,
+  resolveCanvass,
+  setFamilyCareer,
+  doRankTrackWork,
+  prepInspect,
+  maybeProtegeVisit,
+  tickFamilyCareer,
+} from './systems/newplay'
 import { checkEnding } from './systems/ending'
 import {
   type ActionId,
@@ -982,6 +991,30 @@ function draw() {
       saveGame(state)
       draw()
     },
+    onCanvass: (kind: 'private' | 'public' | 'wait') => {
+      const text = resolveCanvass(state, kind)
+      state.lastFeedback = { title: '会前沟通', text }
+      saveGame(state)
+      draw()
+    },
+    onFamilyCareer: (kind: 'work' | 'care' | 'study') => {
+      const text = setFamilyCareer(state, kind)
+      state.lastFeedback = { title: '家庭侧重', text }
+      saveGame(state)
+      draw()
+    },
+    onRankTrackWork: () => {
+      const text = doRankTrackWork(state)
+      state.lastFeedback = { title: '职级实权', text }
+      saveGame(state)
+      draw()
+    },
+    onPrepInspect: () => {
+      const text = prepInspect(state)
+      state.lastFeedback = { title: '迎检准备', text }
+      saveGame(state)
+      draw()
+    },
     onNewGame: () => {
       const ownerId = authUser()?.id ?? ''
       const ownerNick = authNickname()
@@ -1016,6 +1049,10 @@ function draw() {
       state.flags.authNick = ownerNick
       state.pendingOriginId = undefined
       pushLog(state, `出身确认：${getOrigin(originId).name}`)
+      for (const note of catalogOpeningBonus(state)) {
+        pushLog(state, `【图鉴】${note}`)
+        state.lastFeedback = { title: '图鉴加成', text: note }
+      }
       startMonthActions()
       pullEvent()
       saveGame(state)
@@ -1041,6 +1078,9 @@ function draw() {
           '线索已进入程序。左栏可选：如实配合 / 拖延 / 找人打听。配合通常更有利。',
         )
       }
+      const pv = maybeProtegeVisit(state)
+      if (pv) state.lastFeedback = { title: '门生来访', text: pv.replace(/^【门生】/, '') }
+      tickFamilyCareer(state)
       if (checkEnding(state)) {
         saveGame(state)
         draw()

@@ -19,6 +19,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13p',
+    date: '今天',
+    items: [
+      { kind: '新增', text: '出身长线：省考/本乡/军转各一条跨阶段故事（同考场、王婶、老战友等）。' },
+      { kind: '新增', text: '会前沟通：进入票决前可选私下沟通 / 会上讲清 / 按兵不动，影响票决与廉洁。' },
+      { kind: '新增', text: '图鉴收集：30/60/100/150 条给开局属性加成。' },
+      { kind: '新增', text: '家庭侧重：支持配偶事业 / 多顾家 / 对子女少干预。' },
+      { kind: '新增', text: '门生来访、职级序列课题列席、迎检自查；政策试点会受派系施压或顶压加分。' },
+    ],
+  },
+  {
     ver: '2026.09.13o',
     date: '今天',
     items: [

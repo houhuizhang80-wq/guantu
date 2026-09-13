@@ -2,6 +2,7 @@ import type { GameState } from '../types'
 import { getPost } from '../data/posts'
 import { clamp, pushLog } from '../state/game'
 import { factionName } from './faction'
+import { policyFactionFactor } from './newplay'
 
 /* ═══════════ 政策试点 ═══════════ */
 
@@ -123,13 +124,16 @@ export function tickPolicy(s: GameState): string | null {
     const weak = quality < 45
     const fx = { ...def.doneFx }
     const scale = strong ? 1.25 : weak ? 0.45 : 1
+    const fac = policyFactionFactor(s)
     const applied: string[] = []
     for (const k of Object.keys(fx) as (keyof typeof fx)[]) {
       const v = fx[k]
       if (typeof v !== 'number') continue
-      const scaled = Math.round(v * scale)
+      let scaled = Math.round(v * scale)
+      if (k === 'ZJ') scaled += fac.bonusZJ
+      if (k === 'Lian') scaled += fac.bonusLian
       if (k === 'Risk') {
-        s.risk = clamp(s.risk + scaled, 0, 100)
+        s.risk = clamp(s.risk + scaled + fac.risk, 0, 100)
         applied.push(`风险${scaled >= 0 ? '+' : ''}${scaled}`)
       } else {
         s.attrs[k] = clamp(s.attrs[k] + scaled)
@@ -146,7 +150,7 @@ export function tickPolicy(s: GameState): string | null {
     }
     const name = s.policy.name
     s.policy = null
-    const line = `【试点】「${name}」结项（质量 ${quality}）。${applied.join('，')}。`
+    const line = `【试点】「${name}」结项（质量 ${quality}）。${applied.join('，')}。${fac.note}`
     pushLog(s, line)
     return line
   }

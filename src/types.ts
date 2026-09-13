@@ -358,6 +358,12 @@ export interface GameState {
   lastFactionAct?: string | null
   /** 派系会议投票待处理 */
   pendingVote?: { title: string; text: string } | null
+  /** 票决前会前沟通窗口 */
+  pendingCanvass?: boolean
+  /** 会前沟通给票决的加分 */
+  canvassBonus?: number
+  /** 家庭职业侧重 */
+  familyCareer?: 'work' | 'care' | 'study' | null
   /** 复盘档案是否打开 */
   showFailLog?: boolean
   /** 图鉴按章节筛选 */
