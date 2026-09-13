@@ -21,6 +21,9 @@ export function runAnnualAppraisal(s: GameState): Appraisal {
   score -= Math.min(8, (s.ffUsedThisYear ?? 0) * 2)
   // 深度公务质量加分
   score += Math.round(clamp((s.dutyYearScore ?? 0) * 0.06, 0, 6))
+  // 政策试点结项加分（本年内）
+  const polBonus = Number(s.flags.policyYearBonus ?? 0)
+  if (polBonus > 0) score += Math.round(clamp(polBonus, 0, 12))
   // 家庭压力拖累考核
   score -= familyPressure(s) * 2
   score = Math.round(clamp(score, 0, 100))
@@ -32,7 +35,10 @@ export function runAnnualAppraisal(s: GameState): Appraisal {
 
   if (score >= 78 && risk < 45 && a.Lian >= 55) {
     grade = '优秀'
-    note = '工作实绩突出，廉洁自律较好，建议继续重点培养。'
+    note =
+      polBonus > 0
+        ? `工作实绩突出（含政策试点加分 +${Math.round(clamp(polBonus, 0, 12))}），廉洁自律较好，建议继续重点培养。`
+        : '工作实绩突出，廉洁自律较好，建议继续重点培养。'
     fx = { ZJ: 4, GX: 5, MX: 3, NL: 2 }
     riskDelta = -4
     s.flags.appraisalExcellent = true
@@ -70,6 +76,8 @@ export function runAnnualAppraisal(s: GameState): Appraisal {
   s.attrs.MX = clamp(s.attrs.MX + (fx.MX ?? 0))
   s.attrs.NL = clamp(s.attrs.NL + (fx.NL ?? 0))
   s.risk = clamp(s.risk + riskDelta, 0, 100)
+  // 消费本年试点加分
+  s.flags.policyYearBonus = 0
 
   return {
     year: s.year,

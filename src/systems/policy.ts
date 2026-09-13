@@ -139,6 +139,10 @@ export function tickPolicy(s: GameState): string | null {
     if (strong) {
       s.attrs.GX = clamp(s.attrs.GX + 3)
       s.flags.policyExcellent = true
+      // 写入本年考核加分（年度考核时消费）
+      s.flags.policyYearBonus = clamp(Number(s.flags.policyYearBonus ?? 0) + 6, 0, 12)
+    } else if (!weak) {
+      s.flags.policyYearBonus = clamp(Number(s.flags.policyYearBonus ?? 0) + 3, 0, 12)
     }
     const name = s.policy.name
     s.policy = null
@@ -280,7 +284,32 @@ export function tickFactionTask(s: GameState): string | null {
   s.risk = clamp(s.risk + def.failRisk, 0, 100)
   s.factionHeat = clamp((s.factionHeat ?? 20) + def.failHeat, 0, 100)
   s.factionRep[s.faction] = clamp((s.factionRep[s.faction] ?? 20) - 6, 0, 100)
-  const line = `【派系】「${def.title}」没办利索。风险与角力热度上升，本系有人埋怨。`
+  // 对家报复：下月落地
+  const others = (['A', 'B', 'local'] as const).filter((x) => x !== s.faction)
+  const enemy = others[Math.floor(Math.random() * others.length)]
+  s.flags.factionRevenge = enemy
+  const line = `【派系】「${def.title}」没办利索。风险与角力热度上升；${factionName(enemy)}已有人在打听你的材料。`
+  pushLog(s, line)
+  return line
+}
+
+/** 对家报复落地（每月结算一次） */
+export function tickFactionRevenge(s: GameState): string | null {
+  const enemy = s.flags.factionRevenge as string | undefined
+  if (!enemy) return null
+  s.flags.factionRevenge = 0
+  s.factionRep[enemy as 'A' | 'B' | 'local'] = clamp(
+    (s.factionRep[enemy as 'A' | 'B' | 'local'] ?? 20) + 5,
+    0,
+    100,
+  )
+  if (s.faction !== 'none') {
+    s.factionRep[s.faction] = clamp((s.factionRep[s.faction] ?? 20) - 4, 0, 100)
+  }
+  s.risk = clamp(s.risk + 7, 0, 100)
+  s.attrs.GX = clamp(s.attrs.GX - 3)
+  s.attrs.Lian = clamp(s.attrs.Lian - 2)
+  const line = `【派系】${factionName(enemy as 'A' | 'B' | 'local')}的反击到了：有人向上反映你「站队过猛、办事不干净」。风险与关系承压。`
   pushLog(s, line)
   return line
 }

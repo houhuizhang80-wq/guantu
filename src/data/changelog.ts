@@ -19,6 +19,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    ver: '2026.09.13j',
+    date: '今天',
+    items: [
+      { kind: '优化', text: '政策试点高质量结项会写入本年考核加分（约 +3～+12），更容易拿年度「优秀」。' },
+      { kind: '新增', text: '派系交办办砸后，对家会在下月报复：关系与风险再受冲击。' },
+      { kind: '优化', text: '帮助文档新增「政策试点」「派系交办」专节。' },
+    ],
+  },
+  {
     ver: '2026.09.13i',
     date: '今天',
     items: [

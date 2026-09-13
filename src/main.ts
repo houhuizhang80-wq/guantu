@@ -70,6 +70,7 @@ import {
   declineFactionTask,
   tickFactionTask,
   peekFactionTask,
+  tickFactionRevenge,
 } from './systems/policy'
 import { checkEnding } from './systems/ending'
 import {
@@ -1474,6 +1475,8 @@ function advanceMonth() {
   if (polNote) state.lastFeedback = { title: '政策试点', text: polNote }
   const ftNote = tickFactionTask(state)
   if (ftNote) pushLog(state, ftNote)
+  const rev = tickFactionRevenge(state)
+  if (rev) pushLog(state, rev)
   maybeOfferFactionTask(state)
   ageTick(state)
   enterRetired(state)
