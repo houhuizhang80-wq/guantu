@@ -194,12 +194,18 @@ export const ENDINGS: Ending[] = [
     title: '船上的人',
     summary: '你绑上了赢的那一边。名单上有你的名字。茶话会上笑声很多，你知道其中有多少是冲着椅子来的。',
     priority: 27,
-    check: (s) =>
-      (s.faction === 'A' || s.faction === 'B') &&
-      s.turn >= 60 &&
-      rank(s) >= 8 &&
-      s.risk < 55 &&
-      s.attrs.GX >= 70,
+    check: (s) => {
+      // 站队「赢家」是一种结局叙事，但不能在壮年、仍有晋升去路时提前掐断生涯
+      if (s.faction !== 'A' && s.faction !== 'B') return false
+      if (s.turn < 300) return false
+      if (s.age < 55) return false
+      if (rank(s) < 12) return false
+      if (s.risk >= 55) return false
+      if (s.attrs.GX < 70) return false
+      // 已到高层且确实上不去了，或年龄/任期卡住
+      if (!stuckLong(s) && rank(s) < 16) return false
+      return true
+    },
   },
   {
     id: 'pingan_lao',
